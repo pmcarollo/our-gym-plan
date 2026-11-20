@@ -35,6 +35,16 @@ const PROGRAM = [
   ]}
 ];
 
+const CORE_BREAKS = [
+  ["Dead bug", "8–10 each side", "Slow, controlled reps. Keep your lower back steady."],
+  ["Front plank", "20–30 seconds", "Brace your abs and glutes; keep a straight line."],
+  ["Pallof press", "10 each side", "Press straight out and resist rotating toward the cable."],
+  ["Cable wood chop", "10 each side", "Move diagonally with control; avoid yanking."],
+  ["Reverse crunch", "10–12 reps", "Curl your hips gently off the floor without swinging."],
+  ["Bird dog", "8–10 each side", "Reach opposite arm and leg while keeping hips level."],
+  ["Side plank", "20–30 seconds each side", "Keep hips lifted and your body in a straight line."],
+  ["Mountain climber", "20 total reps", "Move steadily while keeping your torso stable."]
+];
 
 const EXERCISE_GUIDES = {
   "DB bench press": ["Chest press using dumbbells on a flat bench.", ["Set feet firmly and keep shoulder blades gently tucked into the bench.", "Lower weights under control beside your chest.", "Press up without banging the dumbbells together."], "Avoid flaring elbows straight out or arching excessively."],
@@ -160,6 +170,7 @@ export default function App() {
     if (!person) return;
     if (startedAt && workoutId) {
       localStorage.setItem(draftKey(person), JSON.stringify({ workoutId, startedAt, workoutDate, workoutTime }));
+    }
   }, [person, workoutId, startedAt, workoutDate, workoutTime]);
 
   useEffect(() => {
@@ -238,6 +249,13 @@ export default function App() {
     save({ ...payload, done });
   }
 
+  function toggleCore(coreName) {
+    const done = { ...(payload.coreDone || {}) };
+    const key = `${workoutId}-${coreName}`;
+    done[key] = !done[key];
+    save({ ...payload, coreDone: done });
+  }
+
   function togglePair(pairIndex) {
     const done = { ...(payload.done || {}) };
     const pair = activeWorkout.pairs[pairIndex];
@@ -267,8 +285,12 @@ export default function App() {
   function nextWeek() {
     const nextWeek = week + 1;
     const supersetOrder = { ...(payload.supersetOrder || {}) };
-    PROGRAM.forEach(workout => { supersetOrder['w' + nextWeek + '-' + workout.id] = [0, 1, 2, 3].sort(() => Math.random() - .5); });
-    save({ ...payload, week: nextWeek, supersetOrder, done: {} });
+    const coreOrder = { ...(payload.coreOrder || {}) };
+    PROGRAM.forEach(workout => {
+      supersetOrder['w' + nextWeek + '-' + workout.id] = [0, 1, 2, 3].sort(() => Math.random() - .5);
+      coreOrder['w' + nextWeek + '-' + workout.id] = CORE_BREAKS.map((_, i) => i).sort(() => Math.random() - .5);
+    });
+    save({ ...payload, week: nextWeek, supersetOrder, coreOrder, done: {}, coreDone: {} });
   }
 
   function updateWeight(name, value) {
@@ -326,11 +348,21 @@ export default function App() {
         const pair = activeWorkout.pairs[pairIndex];
         const index = pairIndex;
         const complete = pair.every((_, ei) => payload.done?.[exerciseKey(workoutId,index,ei)]);
-        return <article className={`superset-card ${complete ? "pair-complete" : ""}`} key={index}>
+        const coreIndex = (payload.coreOrder?.['w' + week + '-' + workoutId] || [0,1,2,3,4,5,6,7])[displayIndex];
+        const core = CORE_BREAKS[coreIndex];
+        const coreDone = Boolean(payload.coreDone?.[`${workoutId}-${core[0]}`]);
+        return <div className="superset-and-core" key={index}>
+        <article className={`superset-card ${complete ? "pair-complete" : ""}`}>
           <header><div><span className="eyebrow">SUPERSET {displayIndex+1}</span></div><button className={`pair-check ${complete ? "checked" : ""}`} onClick={() => togglePair(index)}>{complete ? <Check size={17}/> : "Done"}</button></header>
           {pair.map(([name,detail],ei) => <div className="exercise-row" key={name}><button className={`exercise-check ${payload.done?.[exerciseKey(workoutId,index,ei)] ? "checked" : ""}`} onClick={() => toggleExercise(index,ei)}>{payload.done?.[exerciseKey(workoutId,index,ei)] && <Check size={13}/>}</button><div className="exercise-name"><strong>{name}</strong><small>{detail}</small><ExerciseGuide name={name}/></div><label className="weight-input"><input inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span></label></div>)}
           <button className="rest-button" onClick={() => setRest(60)}><Timer size={14}/> Rest 60 sec</button>
-        </article>;
+        </article>
+        <div className={`core-break ${coreDone ? "core-done" : ""}`}>
+          <div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE BREAK</span><strong>{core[0]}</strong><small>{core[1]} · {core[2]}</small></div>
+          <button className={`core-check ${coreDone ? "checked" : ""}`} onClick={() => toggleCore(core[0])}>{coreDone ? <Check size={15}/> : "Skip / Done"}</button>
+          <ExerciseGuide name={core[0]}/>
+        </div>
+        </div>;
       })}</section>
       <section className={`bonus-card ${expandedBonus ? "bonus-open" : ""}`}>
         <button className="bonus-toggle" onClick={() => {setExpandedBonus(v => !v);}}><div><div className="eyebrow">OPTIONAL BONUS ROUND</div><strong>Superset 4 · Feeling saucy?</strong><small>Extra credit. Not required to finish.</small></div><span>{expandedBonus ? <ChevronUp/> : <ChevronDown/>}</span></button>
