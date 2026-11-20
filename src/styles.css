@@ -53,3 +53,25 @@
 .core-check.checked { background: var(--green, #2b643f); color: white; border-color: var(--green, #2b643f); }
 .core-break .exercise-guide { grid-column: 1 / -1; margin-top: 0; }
 .core-done { opacity: .72; }
+
+
+/* Distinct optional core actions and workout history */
+.core-actions{display:flex;gap:6px;align-items:center}
+.core-action{display:inline-flex;align-items:center;gap:4px;padding:7px 9px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--green);font-size:10px;font-weight:700}
+.core-action.selected{border-color:#a9c4a7;background:#e6f0e3;color:#285b3b}
+.history-link{display:flex;align-items:center;justify-content:space-between;width:100%;margin:-2px 0 13px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:transparent;color:var(--green);font-size:11px;font-weight:700}
+.history-list{display:grid;gap:12px}
+.history-card{padding:15px;border:1px solid var(--line);border-radius:15px;background:var(--paper)}
+.history-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.history-card-head h3{font-size:20px}
+.history-card-head time,.history-time{color:var(--muted);font-size:10px}
+.history-time{margin:5px 0 12px}
+.history-core{display:grid;gap:8px;padding:11px;border-radius:10px;background:#f5f6ef}
+.history-core>strong{font-size:11px}
+.history-core-row,.history-exercise-row{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#5c6c60}
+.history-core-row span:last-child{white-space:nowrap;color:var(--muted);text-transform:capitalize}
+.history-core-row .history-done{color:#2d7045;font-weight:700}
+.history-legacy,.history-empty{color:var(--muted);font-size:11px}
+.history-exercises{margin-top:11px;font-size:10px}
+.history-exercises summary{color:var(--green);font-weight:700;cursor:pointer}
+.history-exercise-row{padding:7px 0;border-bottom:1px solid #eff0e9}
