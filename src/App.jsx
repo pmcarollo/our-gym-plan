@@ -61,7 +61,7 @@ function generateWildCard(profile) {
   const shuffle = items => [...items].sort(() => Math.random() - 0.5);
   const storageKey = `our-gym-plan-wildcard-history-${profile}`;
   let recent = [];
-  try { recent = JSON.parse(localStorage.getItem(storageKey) || "[]"); } catch { recent = []; }
+  try { const parsed = JSON.parse(localStorage.getItem(storageKey) || "[]"); recent = Array.isArray(parsed) ? parsed : []; } catch { recent = []; }
   let selected;
   for (let attempt = 0; attempt < 60; attempt++) {
     const push = shuffle(WILD_CARD_POOLS.push).slice(0,2), pull = shuffle(WILD_CARD_POOLS.pull).slice(0,2);
@@ -467,7 +467,7 @@ export default function App() {
   function deleteWorkout(sessionId) {
     const session = (payload.sessions || []).find(item => item.id === sessionId);
     if (!session) return;
-    const label = PROGRAM.find(item => item.id === session.workoutId)?.name || "this workout";
+    const label = PROGRAM.find(item => item.id === session.workoutId)?.name || (session.workoutId === "E" ? "Wild Card" : "this workout");
     if (!window.confirm(`Delete ${label} from your workout history? This cannot be undone.`)) return;
     const sessions = (payload.sessions || []).filter(item => item.id !== sessionId);
     save({ ...payload, sessions });
