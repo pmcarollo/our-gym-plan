@@ -170,7 +170,8 @@ export default function App() {
     const sessions = [...(payload.sessions || []), {
       id: crypto.randomUUID(), workoutId, week, profile: person,
       startedAt: startedAt || new Date().toISOString(), completedAt: new Date().toISOString(),
-      bonusDone: Boolean(payload.done?.[exerciseKey(workoutId, 3, 0)] || payload.done?.[exerciseKey(workoutId, 3, 1)])
+      bonusDone: Boolean(payload.done?.[exerciseKey(workoutId, 3, 0)] || payload.done?.[exerciseKey(workoutId, 3, 1)]),
+      exerciseSnapshot: activeWorkout.pairs.map((pair, pairIndex) => pair.map(([name, detail], exerciseIndex) => ({ name, detail, weight: payload.weights?.[name] || "", completed: Boolean(payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]) })))
     }];
     save({ ...payload, sessions });
     setStartedAt(null);
