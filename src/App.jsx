@@ -131,6 +131,7 @@ export default function App() {
   const [workoutTime, setWorkoutTime] = useState(currentTimeKey());
   const [rest, setRest] = useState(0);
   const [expandedBonus, setExpandedBonus] = useState(false);
+  const [showNextWeekConfirm, setShowNextWeekConfirm] = useState(false);
 
   const activeWorkout = PROGRAM.find(w => w.id === workoutId);
   const week = payload.week || 1;
@@ -339,15 +340,29 @@ export default function App() {
     setNotice("");
   }
 
+  function previousWeek() {
+    if (week <= 1) return;
+    if (startedAt) {
+      setError("Finish or discard your in-progress workout before changing weeks.");
+      return;
+    }
+    save({ ...payload, week: week - 1, done: {}, coreDone: {} });
+  }
+
   function nextWeek() {
-    const nextWeek = week + 1;
+    if (startedAt) {
+      setError("Finish or discard your in-progress workout before changing weeks.");
+      return;
+    }
+    const nextWeekNumber = week + 1;
     const supersetOrder = { ...(payload.supersetOrder || {}) };
     const coreOrder = { ...(payload.coreOrder || {}) };
     PROGRAM.forEach(workout => {
-      supersetOrder['w' + nextWeek + '-' + workout.id] = [0, 1, 2, 3].sort(() => Math.random() - .5);
-      coreOrder['w' + nextWeek + '-' + workout.id] = CORE_BREAKS.map((_, i) => i).sort(() => Math.random() - .5);
+      supersetOrder['w' + nextWeekNumber + '-' + workout.id] = [0, 1, 2, 3].sort(() => Math.random() - .5);
+      coreOrder['w' + nextWeekNumber + '-' + workout.id] = CORE_BREAKS.map((_, i) => i).sort(() => Math.random() - .5);
     });
-    save({ ...payload, week: nextWeek, supersetOrder, coreOrder, done: {}, coreDone: {} });
+    save({ ...payload, week: nextWeekNumber, supersetOrder, coreOrder, done: {}, coreDone: {} });
+    setShowNextWeekConfirm(false);
   }
 
   function deleteWorkout(sessionId) {
@@ -412,7 +427,21 @@ export default function App() {
           <span className="workout-letter">{done ? <Check size={20}/> : w.id}</span><span className="workout-info"><strong>{w.name}</strong><small>{done ? `Completed · ${new Date(done.completedAt).toLocaleDateString()}` : w.focus}</small></span><span className="workout-arrow">{done ? "✓" : "↗"}</span>
         </button>;
       })}</section>
-      <button className="text-button" onClick={nextWeek}><RotateCcw size={14}/> Start week {week+1} · reset checkmarks & shuffle order</button>
+      <div className="week-navigation">
+        <button className="previous-week-button" onClick={previousWeek} disabled={week <= 1}>← Previous week</button>
+        <button className="next-week-button" onClick={() => setShowNextWeekConfirm(true)}><RotateCcw size={15}/> Start week {week+1}</button>
+      </div>
+      {showNextWeekConfirm && <div className="modal-backdrop" role="presentation" onClick={() => setShowNextWeekConfirm(false)}>
+        <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="next-week-title" onClick={e => e.stopPropagation()}>
+          <div className="eyebrow">MOVE FORWARD</div>
+          <h3 id="next-week-title">Start week {week+1}?</h3>
+          <p>This resets the current workout checkmarks and shuffles the superset and core order for the new week. Your completed workout history and saved weights stay intact.</p>
+          <div className="modal-actions">
+            <button className="modal-cancel" onClick={() => setShowNextWeekConfirm(false)}>Cancel</button>
+            <button className="modal-confirm" onClick={nextWeek}>Start week {week+1}</button>
+          </div>
+        </section>
+      </div>}
       <div className="footer-note"><Clock3 size={14}/> Workout cutoff · 6:50 AM Eastern</div>
       {busy && <p className="muted-label">Syncing…</p>}
     </> : screen === "history" ? <>
