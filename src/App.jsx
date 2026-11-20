@@ -103,7 +103,7 @@ function generateWildCard(week, disabledExercises = []) {
     [legs[1],finisher[1]]
   ];
   const comboKey = pairs.flat().map(item => item[0]).sort().join("|");
-  const coreOrder = seededShuffle(CORE_BREAKS.map((_, i) => i), seed + "-core").slice(0,2);
+  const coreOrder = seededShuffle(CORE_BREAKS.map((_, i) => i).filter(i => !disabledExercises.includes(CORE_BREAKS[i][0])), seed + "-core").slice(0,2);
   return {id:"E",name:"Wild Card",focus:"Push · Pull · Legs · Finisher",pairs,comboKey,coreOrder};
 }
 
@@ -472,7 +472,9 @@ export default function App() {
   }
 
   function startWildCardWorkout() {
-    const generated = generateWildCard(currentCalendarWeekKey(), payload.disabledExercises || []);
+    let generated;
+    try { generated = generateWildCard(currentCalendarWeekKey(), payload.disabledExercises || []); }
+    catch (e) { setError(e.message); return; }
     const coreOrderKey = 'w' + week + '-E';
     const coreOrder = { ...(payload.coreOrder || {}), [coreOrderKey]: generated.coreOrder };
     const supersetOrder = { ...(payload.supersetOrder || {}), [coreOrderKey]: [0,1,2,3] };
