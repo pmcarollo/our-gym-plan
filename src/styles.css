@@ -82,3 +82,10 @@
 
 .history-delete { margin-top: 14px; padding: 7px 0; border: 0; background: transparent; color: #9b5e50; font: inherit; font-size: 12px; cursor: pointer; }
 .history-delete:active { opacity: .65; }
+
+
+.history-weights { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(40, 65, 48, .12); }
+.history-weights > strong { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 600; }
+.history-weights .history-exercise-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 12px; }
+.history-weights .history-exercise-row span:last-child { font-weight: 600; white-space: nowrap; }
+.history-no-weights { margin: 0; color: var(--muted, #777); font-size: 12px; }
