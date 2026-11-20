@@ -1,0 +1,2 @@
+[functions.gym-api]
+verify_jwt = false
