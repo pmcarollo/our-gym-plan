@@ -234,13 +234,22 @@ export default function App() {
   }
 
   function discardWorkout() {
-    if (!window.confirm("Discard this in-progress workout? Your saved weights will stay, but exercise checkmarks from this session will be reset.")) return;
+    if (!window.confirm("Discard this in-progress workout? Weights entered during this workout will be cleared, while weights from completed workouts will be kept.")) return;
     localStorage.removeItem(draftKey(person));
     const done = { ...(payload.done || {}) };
     Object.keys(done).filter(key => key.startsWith(`${workoutId}-p`)).forEach(key => delete done[key]);
     const coreStatus = { ...(payload.coreStatus || {}) };
     Object.keys(coreStatus).filter(key => key.startsWith(`${startedAt}-`)).forEach(key => delete coreStatus[key]);
-    save({ ...payload, done, coreStatus });
+
+    // Restore the latest recorded weight for each exercise from completed history.
+    const weights = {};
+    const sessions = [...(payload.sessions || [])].sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0));
+    for (const session of sessions) {
+      for (const item of session.exerciseSnapshot?.flat() || []) {
+        if (item.weight !== "" && item.weight != null && weights[item.name] === undefined) weights[item.name] = item.weight;
+      }
+    }
+    save({ ...payload, done, coreStatus, weights });
     setStartedAt(null);
     setWorkoutId("");
     setRest(0);
