@@ -139,8 +139,15 @@ export default function App() {
   const completedThisWeek = useMemo(() => PROGRAM.filter(w => payload.sessions.some(s => s.workoutId === w.id && s.week === week && s.completedAt)).length, [payload, week]);
 
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
+    const refreshClock = () => setNow(new Date());
+    const id = setInterval(refreshClock, 1000);
+    window.addEventListener("focus", refreshClock);
+    document.addEventListener("visibilitychange", refreshClock);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("focus", refreshClock);
+      document.removeEventListener("visibilitychange", refreshClock);
+    };
   }, []);
 
   useEffect(() => {
@@ -180,12 +187,19 @@ export default function App() {
   }, [person, workoutId, startedAt, workoutDate, workoutTime]);
 
   useEffect(() => {
-    if (!startedAt || !activeWorkout) return;
-    const eastern = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "numeric", minute: "2-digit", hour12: false }).format(now);
+    if (!startedAt || !activeWorkout || !person) return;
+    const eastern = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(now);
     const [h, m] = eastern.split(":").map(Number);
     const minuteOfDay = h * 60 + m;
-    if (minuteOfDay === 6 * 60 + 45 && now.getSeconds() === 0) setNotice("5 minutes left. Finish your current set and start wrapping up.");
-  }, [now, startedAt, activeWorkout]);
+    const warningKey = `fiveMinuteWarning-${person}-${startedAt}`;
+    // The gym cutoff is 6:50 AM Eastern. Use a five-minute window rather
+    // than a single second so timer ticks, background throttling, or reloads
+    // cannot cause the warning to be missed.
+    if (minuteOfDay >= 6 * 60 + 45 && minuteOfDay < 6 * 60 + 50 && !localStorage.getItem(warningKey)) {
+      localStorage.setItem(warningKey, "shown");
+      setNotice("5 MINUTES LEFT · Gym closes at 6:50 AM. Finish your current set and start wrapping up.");
+    }
+  }, [now, startedAt, activeWorkout, person]);
 
   async function loadProfile() {
     try {
@@ -466,7 +480,7 @@ export default function App() {
     </> : activeWorkout && <>
       <button className="back-button" onClick={() => setScreen("home")}>← All workouts</button>
       <section className="greeting workout-heading"><div><div className="eyebrow">WORKOUT {activeWorkout.id} · WEEK {week}</div><h2>{activeWorkout.name}</h2><p>{activeWorkout.focus}</p></div></section>
-      {notice && <div className="warning-banner"><Clock3 size={18}/><span>{notice}</span><button onClick={() => setNotice("")}>×</button></div>}
+      {notice && <div className="warning-banner" role="alert"><Clock3 size={20}/><strong>{notice}</strong><button aria-label="Dismiss warning" onClick={() => setNotice("")}>×</button></div>}
       <div className="workout-controls"><span className="muted-label">3 required supersets · 1 optional bonus</span><div className="workout-datetime"><label className="workout-date-label">Workout date<input aria-label="Workout date" type="date" value={workoutDate} max={todayKey()} onChange={e => setWorkoutDate(e.target.value)} /></label><div className="workout-date-label"><span className="muted-label">Finish time</span><strong className="live-finish-time">{easternTime} Eastern</strong></div></div><span className="muted-label">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
       <section className="superset-list">{(payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3]).slice(0,3).map((pairIndex,displayIndex) => {
         const pair = activeWorkout.pairs[pairIndex];
