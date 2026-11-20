@@ -381,8 +381,10 @@ export default function App() {
           return <article className="history-card" key={session.id}>
             <div className="history-card-head"><div><span className="eyebrow">WEEK {session.week || "—"}</span><h3>{workout?.name || `Workout ${session.workoutId}`}</h3></div><time>{session.completedAt ? new Date(session.completedAt).toLocaleDateString([], {month:"short",day:"numeric",year:"numeric"}) : "Date unavailable"}</time></div>
             <p className="history-time">{session.completedAt ? new Date(session.completedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : ""}</p>
-            {session.coreSnapshot?.length ? <div className="history-core"><strong>Optional core</strong>{session.coreSnapshot.map(item => <div className="history-core-row" key={item.afterSuperset + item.name}><span>After superset {item.afterSuperset}: {item.name}</span><span className={item.status === "done" ? "history-done" : ""}>{item.status === "done" ? "Done" : item.status === "skipped" ? "Skipped" : "Not recorded"}</span></div>)}</div> : <p className="history-legacy">Core activity wasn't recorded for this workout.</p>}
-            {session.exerciseSnapshot?.length ? <details className="history-exercises"><summary>View exercise log</summary>{session.exerciseSnapshot.flat().map(item => <div className="history-exercise-row" key={item.name}><span>{item.name}{item.weight ? ` · ${item.weight} lb` : ""}</span><span>{item.completed ? "Done" : "Not checked"}</span></div>)}</details> : null}
+            <div className="history-weights">
+              <strong>Weights recorded</strong>
+              {session.exerciseSnapshot?.flat().filter(item => item.weight !== "" && item.weight != null).length ? session.exerciseSnapshot.flat().filter(item => item.weight !== "" && item.weight != null).map(item => <div className="history-exercise-row" key={item.name}><span>{item.name}</span><span>{item.weight} lb</span></div>) : <p className="history-no-weights">No weights recorded</p>}
+            </div>
             <button className="history-delete" onClick={() => deleteWorkout(session.id)}>Delete workout</button>
           </article>;
         })}
