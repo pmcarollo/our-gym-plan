@@ -50,7 +50,53 @@ const CORE_BREAKS = [
   ["Glute bridge march", "8–10 each side", "Keep hips level as you slowly lift one foot at a time."]
 ];
 
+
+const WILD_CARD_POOLS = {
+  push: [["DB floor press","3 sets · 10 reps"],["Cable chest fly","3 sets · 12 reps"],["Close-grip push-up","3 sets · 8–12 reps"],["Smith machine bench press","3 sets · 8–10 reps"]],
+  pull: [["Seated cable row","3 sets · 10 reps"],["Straight-arm pulldown","3 sets · 12 reps"],["Reverse-grip lat pulldown","3 sets · 10 reps"],["Cable rear-delt row","3 sets · 12 reps"]],
+  legs: [["DB split squat","3 sets · 8 each"],["Lateral lunge","3 sets · 8 each"],["Single-leg DB Romanian deadlift","3 sets · 8 each"],["Smith machine squat","3 sets · 10 reps"]],
+  finisher: [["Rower sprint","4 rounds · 30 sec"],["Bike sprint","4 rounds · 30 sec"],["Incline treadmill walk","4 rounds · 1 min"],["Farmer carry","4 rounds · 30 sec"]]
+};
+function generateWildCard(profile) {
+  const shuffle = items => [...items].sort(() => Math.random() - 0.5);
+  const storageKey = `our-gym-plan-wildcard-history-${profile}`;
+  let recent = [];
+  try { recent = JSON.parse(localStorage.getItem(storageKey) || "[]"); } catch { recent = []; }
+  let selected;
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const push = shuffle(WILD_CARD_POOLS.push).slice(0,2), pull = shuffle(WILD_CARD_POOLS.pull).slice(0,2);
+    const legs = shuffle(WILD_CARD_POOLS.legs).slice(0,2), finisher = shuffle(WILD_CARD_POOLS.finisher).slice(0,2);
+    const pairs = [...shuffle([[push[0],pull[0]],[legs[0],finisher[0]],[push[1],pull[1]]]),[legs[1],finisher[1]]];
+    const comboKey = pairs.flat().map(item => item[0]).sort().join("|");
+    if (!recent.includes(comboKey)) { selected = {id:"E",name:"Wild Card",focus:"Push · Pull · Legs · Finisher",pairs,comboKey}; break; }
+  }
+  if (!selected) {
+    const push=shuffle(WILD_CARD_POOLS.push).slice(0,2), pull=shuffle(WILD_CARD_POOLS.pull).slice(0,2);
+    const legs=shuffle(WILD_CARD_POOLS.legs).slice(0,2), finisher=shuffle(WILD_CARD_POOLS.finisher).slice(0,2);
+    const pairs=[...shuffle([[push[0],pull[0]],[legs[0],finisher[0]],[push[1],pull[1]]]),[legs[1],finisher[1]]];
+    selected={id:"E",name:"Wild Card",focus:"Push · Pull · Legs · Finisher",pairs,comboKey:pairs.flat().map(item=>item[0]).sort().join("|")};
+  }
+  localStorage.setItem(storageKey,JSON.stringify([selected.comboKey,...recent.filter(key=>key!==selected.comboKey)].slice(0,12)));
+  return selected;
+}
+
 const EXERCISE_GUIDES = {
+
+  "DB floor press":["A dumbbell chest press on the floor, which limits the bottom range of motion.",["Lie on the floor with knees bent and dumbbells above your chest.","Lower until upper arms gently touch the floor.","Press up smoothly without bouncing your elbows."],"Avoid flaring elbows or letting wrists bend back."],
+  "Cable chest fly":["A cable isolation movement for the chest.",["Set pulleys around chest height and take a small step forward.","Keep a soft elbow bend and bring hands together in front of your chest.","Open arms slowly to a comfortable stretch."],"Avoid turning it into a press or over-stretching your shoulders."],
+  "Close-grip push-up":["A push-up variation that places more emphasis on the triceps.",["Set hands just inside shoulder width under your chest.","Keep elbows angled back as you lower.","Press the floor away while keeping your body in a straight line."],"Avoid letting elbows flare or hips sag."],
+  "Smith machine bench press":["A guided-bar chest press. Set safety stops before loading.",["Set the bench so the bar lowers to mid-chest.","Set safety stops just below your comfortable bottom position.","Lower under control and press without bouncing."],"Avoid setting safety stops too low or pressing without a spotter when lifting heavy."],
+  "Seated cable row":["A horizontal cable pull for the mid-back and lats.",["Sit tall with knees slightly bent and brace your trunk.","Pull the handle toward your lower ribs, keeping elbows close.","Extend arms slowly without rounding your back."],"Avoid rocking your torso to move the weight."],
+  "Straight-arm pulldown":["A cable lat exercise that keeps elbows mostly straight.",["Set the cable high and stand far enough back to create tension.","Keep a slight elbow bend and sweep the bar toward your thighs.","Return slowly without arching."],"Avoid bending elbows into a triceps pressdown."],
+  "Reverse-grip lat pulldown":["A lat pulldown using an underhand grip.",["Grip the bar around shoulder width with palms facing you.","Brace and pull toward your upper chest.","Return slowly while keeping shoulders controlled."],"Avoid leaning far back or pulling behind your neck."],
+  "Cable rear-delt row":["A cable row emphasizing rear shoulders and upper back.",["Set cables around upper-chest height and use a wide grip.","Pull hands outward toward your upper chest.","Squeeze gently, then return under control."],"Avoid shrugging or using momentum."],
+  "DB split squat":["A stationary single-leg squat holding dumbbells at your sides.",["Take a staggered stance with feet on separate tracks.","Lower straight down while keeping the front heel planted.","Drive through the front foot to stand."],"Avoid letting the front knee collapse inward."],
+  "Lateral lunge":["A side-to-side lunge that trains the hips and legs in a different plane.",["Stand tall and take a wide step to one side.","Sit hips back over the stepping leg while the other leg stays long.","Push through the bent leg to return to center."],"Avoid letting the stepping foot roll inward."],
+  "Single-leg DB Romanian deadlift":["A single-leg hip hinge for hamstrings, glutes and balance.",["Hinge at the hip as the free leg reaches back.","Keep hips square and spine neutral.","Return to standing with control."],"Avoid rotating your hips open or rounding your back."],
+  "Smith machine squat":["A guided-bar squat variation. Set the safety stops before loading.",["Position the bar comfortably across your upper back and set feet securely.","Brace and squat to a depth you can control.","Drive through the whole foot to stand."],"Avoid bouncing at the bottom or letting knees cave inward."],
+  "Rower sprint":["A short rowing-machine interval. Focus on smooth power rather than all-out speed.",["Push with legs first, then lean back slightly and pull the handle in.","Recover hands away, hinge forward, then bend knees.","Use a sustainable hard effort for each interval."],"Avoid yanking with your arms first or rushing recovery."],
+  "Bike sprint":["A short interval on the upright or recumbent bike.",["Set resistance so you can pedal quickly with control.","Build speed smoothly for the work interval.","Ease off and pedal lightly during recovery."],"Avoid resistance so high that your cadence breaks down."],
+  "Incline treadmill walk":["A brisk uphill walk for a low-impact conditioning finisher.",["Choose a moderate incline and a pace you can control.","Walk tall without leaning heavily on the rails.","Reduce incline or speed if your form changes."],"Avoid hanging on the rails or choosing an incline that strains your back."],
   "DB bench press": ["Chest press using dumbbells on a flat bench. Dumbbells remain the default; the Smith machine is an occasional stable barbell alternative if you want to change things up.", ["Set feet firmly and keep shoulder blades gently tucked into the bench.", "Lower weights under control beside your chest.", "Press up without banging the dumbbells together."], "Avoid flaring elbows straight out or arching excessively."],
   "Lat pulldown": ["A vertical pull that trains your lats and upper back.", ["Brace your torso and grip just outside shoulder width.", "Pull the bar toward your upper chest, driving elbows down.", "Return slowly until arms are extended."], "Avoid swinging your torso or pulling the bar behind your neck."],
   "One-arm DB row": ["A single-arm row that builds your lats and mid-back.", ["Support one hand on the bench and keep your back flat.", "Pull the dumbbell toward your hip, not your shoulder.", "Lower until your arm is long without twisting."], "Avoid rotating your torso to heave the weight up."],
@@ -133,8 +179,9 @@ export default function App() {
   const [rest, setRest] = useState(0);
   const [expandedBonus, setExpandedBonus] = useState(false);
   const [showNextWeekConfirm, setShowNextWeekConfirm] = useState(false);
+  const [wildCardWorkout, setWildCardWorkout] = useState(null);
 
-  const activeWorkout = PROGRAM.find(w => w.id === workoutId);
+  const activeWorkout = PROGRAM.find(w => w.id === workoutId) || (workoutId === "E" ? wildCardWorkout : null);
   const activePairOrder = activeWorkout
     ? (payload.supersetOrder?.['w' + (payload.week || 1) + '-' + workoutId] || [0, 1, 2, 3]).slice(0, 3)
     : [];
@@ -177,6 +224,7 @@ export default function App() {
       const draft = JSON.parse(raw);
       if (!draft?.workoutId || !draft?.startedAt) return;
       setWorkoutId(draft.workoutId);
+      setWildCardWorkout(draft.workoutSnapshot || null);
       setStartedAt(draft.startedAt);
       setWorkoutDate(draft.workoutDate || todayKey());
       setWorkoutTime(draft.workoutTime || currentTimeKey());
@@ -189,9 +237,9 @@ export default function App() {
   useEffect(() => {
     if (!person) return;
     if (startedAt && workoutId) {
-      localStorage.setItem(draftKey(person), JSON.stringify({ workoutId, startedAt, workoutDate, workoutTime }));
+      localStorage.setItem(draftKey(person), JSON.stringify({ workoutId, startedAt, workoutDate, workoutTime, workoutSnapshot: wildCardWorkout }));
     }
-  }, [person, workoutId, startedAt, workoutDate, workoutTime]);
+  }, [person, workoutId, startedAt, workoutDate, workoutTime, wildCardWorkout]);
 
   useEffect(() => {
     if (!startedAt || !activeWorkout || !person) return;
@@ -270,6 +318,7 @@ export default function App() {
     localStorage.setItem(PERSON_KEY, name);
     setStartedAt(null);
     setWorkoutId("");
+    setWildCardWorkout(null);
     setPerson(name);
     setScreen("home");
   }
@@ -293,6 +342,7 @@ export default function App() {
     save({ ...payload, done, coreStatus, weights });
     setStartedAt(null);
     setWorkoutId("");
+    setWildCardWorkout(null);
     setRest(0);
     setExpandedBonus(false);
     setNotice("");
@@ -305,7 +355,20 @@ export default function App() {
       const coreOrder = { ...(payload.coreOrder || {}), [coreOrderKey]: CORE_BREAKS.map((_, i) => i).sort(() => Math.random() - .5) };
       save({ ...payload, coreOrder });
     }
+    setWildCardWorkout(null);
     setWorkoutId(id);
+    setWorkoutDate(todayKey());
+    setWorkoutTime(currentTimeKey());
+    setStartedAt(new Date().toISOString());
+    setExpandedBonus(false);
+    setNotice("");
+    setScreen("workout");
+  }
+
+  function startWildCardWorkout() {
+    const generated = generateWildCard(person);
+    setWildCardWorkout(generated);
+    setWorkoutId("E");
     setWorkoutDate(todayKey());
     setWorkoutTime(currentTimeKey());
     setStartedAt(new Date().toISOString());
@@ -356,6 +419,7 @@ export default function App() {
     save({ ...payload, sessions });
     localStorage.removeItem(draftKey(person));
     setStartedAt(null);
+    setWildCardWorkout(null);
     setScreen("home");
     setNotice("");
   }
@@ -409,6 +473,7 @@ export default function App() {
   }
 
   const orderedWorkouts = PROGRAM;
+  const wildCardCompleted = payload.sessions?.some(s => s.workoutId === "E" && s.week === week && s.completedAt);
   const easternTime = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "numeric", minute: "2-digit", hour12: true }).format(now);
   const easternHour = Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "2-digit", hourCycle: "h23" }).format(now));
   const timeGreeting = easternHour < 12 ? "Morning" : easternHour < 17 ? "Afternoon" : "Evening";
@@ -442,13 +507,18 @@ export default function App() {
       <section className="progress-card"><div className="progress-copy"><div className="eyebrow">THIS WEEK</div><strong>{completedThisWeek} of 4 workouts complete</strong><span>{completedThisWeek === 4 ? "That's a wrap. Nice work." : "Keep the rotation rolling."}</span><div className="progress-track"><i style={{width:`${completedThisWeek/4*100}%`}}/></div></div><div className="progress-icon"><Trophy size={21}/></div></section>
       <div className="section-heading"><div><div className="eyebrow">THE ROTATION</div><h3>Your workouts</h3></div><span className="muted-label">A – D</span></div>
       <button className="history-link" onClick={() => setScreen("history")}>View workout history <span>↗</span></button>
-      {startedAt && workoutId && <div className="resume-workout-wrap"><button className="resume-workout" onClick={() => setScreen("workout")}><span><strong>Resume {PROGRAM.find(w => w.id === workoutId)?.name || "workout"}</strong><small>In-progress workout · saved on this device</small></span><span>↗</span></button><button className="discard-workout" onClick={discardWorkout}>Discard workout</button></div>}
+      {startedAt && workoutId && <div className="resume-workout-wrap"><button className="resume-workout" onClick={() => setScreen("workout")}><span><strong>Resume {activeWorkout?.name || "workout"}</strong><small>In-progress workout · saved on this device</small></span><span>↗</span></button><button className="discard-workout" onClick={discardWorkout}>Discard workout</button></div>}
       <section className="workout-list">{orderedWorkouts.map(w => {
         const done = payload.sessions.find(s => s.workoutId === w.id && s.week === week);
         return <button className={`workout-card ${done ? "is-complete" : ""}`} key={w.id} onClick={() => startWorkout(w.id)}>
           <span className="workout-letter">{done ? <Check size={20}/> : w.id}</span><span className="workout-info"><strong>{w.name}</strong><small>{done ? `Completed · ${new Date(done.completedAt).toLocaleDateString()}` : w.focus}</small></span><span className="workout-arrow">{done ? "✓" : "↗"}</span>
         </button>;
       })}</section>
+      <div className="wild-card-section">
+        <div className="wild-card-heading"><div><div className="eyebrow">WHEN YOU WANT SOMETHING DIFFERENT</div><strong>Wild Card</strong><small>Fresh push, pull, legs and finisher combinations, drawn from a separate exercise pool.</small></div><span className="wild-card-spark">✦</span></div>
+        <button className={`wild-card-button ${wildCardCompleted ? "is-complete" : ""}`} onClick={startWildCardWorkout}><span>{wildCardCompleted ? "Generate another Wild Card" : "Generate a Wild Card workout"}</span><span>↗</span></button>
+        <p className="wild-card-note">Optional fifth session · doesn't count toward your four-workout weekly goal</p>
+      </div>
       <div className="week-navigation">
         <button className="previous-week-button" onClick={previousWeek} disabled={week <= 1}>← Previous week</button>
         <button className="next-week-button" onClick={() => setShowNextWeekConfirm(true)}><RotateCcw size={15}/> Start week {week+1}</button>
@@ -471,7 +541,7 @@ export default function App() {
       <section className="greeting"><div><div className="eyebrow">YOUR TRAINING LOG</div><h2>Workout history</h2><p>{payload.sessions?.length || 0} completed workouts</p></div></section>
       <section className="history-list">
         {[...(payload.sessions || [])].sort((a,b) => new Date(b.completedAt) - new Date(a.completedAt)).map(session => {
-          const workout = PROGRAM.find(w => w.id === session.workoutId);
+          const workout = PROGRAM.find(w => w.id === session.workoutId) || (session.workoutId === "E" ? { name: "Wild Card" } : null);
           return <article className="history-card" key={session.id}>
             <div className="history-card-head"><div><span className="eyebrow">WEEK {session.week || "—"}</span><h3>{session.workoutName || workout?.name || `Workout ${session.workoutId}`}</h3></div><time>{session.completedAt ? new Date(session.completedAt).toLocaleDateString([], {month:"short",day:"numeric",year:"numeric"}) : "Date unavailable"}</time></div>
             <p className="history-time">{session.completedAt ? "Finished " + new Date(session.completedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : ""}{session.startedAt && session.completedAt ? " · " + Math.max(1, Math.round((new Date(session.completedAt) - new Date(session.startedAt)) / 60000)) + " min" : ""}</p>
