@@ -203,13 +203,14 @@ function buildExerciseLibrary() {
     if (!item.sources.includes(source)) item.sources.push(source);
     items.set(name, item);
   };
-  PROGRAM.forEach(workout => workout.pairs.forEach((pair, pairIndex) => pair.forEach(([name, prescription]) => add(name, prescription, pairIndex === 3 ? "Bonus" : workout.name))));
+  PROGRAM.forEach(workout => workout.pairs.forEach((pair, pairIndex) => pair.forEach(([name, prescription]) => { add(name, prescription, workout.name); if (pairIndex === 3) add(name, prescription, "Bonus"); })));
   Object.values(WILD_CARD_POOLS).flat().forEach(([name, prescription]) => add(name, prescription, "Wild Card"));
   CORE_BREAKS.forEach(([name, prescription]) => add(name, prescription, "Optional core"));
   return [...items.values()].sort((a,b) => a.name.localeCompare(b.name));
 }
 const EXERCISE_LIBRARY = buildExerciseLibrary();
 const LIBRARY_FILTERS = ["All","Chest","Back","Shoulders","Biceps","Triceps","Quads","Hamstrings","Glutes","Calves","Core","Conditioning","Grip"];
+const LIBRARY_SOURCE_FILTERS = ["All","Upper Body 1","Lower Body","Upper Body 2","Full Body + Core","Bonus","Wild Card","Optional core"];
 
 function ExerciseGuide({ name }) {
   const guide = EXERCISE_GUIDES[name];
@@ -249,6 +250,7 @@ export default function App() {
   const [payload, setPayload] = useState(emptyPayload);
   const [screen, setScreen] = useState("home");
   const [libraryFilter, setLibraryFilter] = useState("All");
+  const [librarySourceFilter, setLibrarySourceFilter] = useState("All");
   const [librarySearch, setLibrarySearch] = useState("");
   const [workoutId, setWorkoutId] = useState("");
   const [busy, setBusy] = useState(false);
@@ -565,7 +567,7 @@ export default function App() {
   }
 
   const orderedWorkouts = PROGRAM;
-  const filteredLibrary = EXERCISE_LIBRARY.filter(item => (libraryFilter === "All" || item.muscles.includes(libraryFilter)) && (item.name.toLowerCase().includes(librarySearch.toLowerCase()) || item.muscles.join(" ").toLowerCase().includes(librarySearch.toLowerCase())));
+  const filteredLibrary = EXERCISE_LIBRARY.filter(item => (libraryFilter === "All" || item.muscles.includes(libraryFilter)) && (librarySourceFilter === "All" || item.sources.includes(librarySourceFilter)) && (item.name.toLowerCase().includes(librarySearch.toLowerCase()) || item.muscles.join(" ").toLowerCase().includes(librarySearch.toLowerCase())));
   const wildCardCompleted = payload.sessions?.some(s => s.workoutId === "E" && s.week === week && s.completedAt);
   const easternTime = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "numeric", minute: "2-digit", hour12: true }).format(now);
   const easternHour = Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "2-digit", hourCycle: "h23" }).format(now));
@@ -641,7 +643,8 @@ export default function App() {
       <button className="back-button" onClick={() => setScreen("settings")}>← Back to settings</button>
       <section className="greeting"><div><div className="eyebrow">OUR SHARED EXERCISE POOL</div><h2>Exercise Library</h2><p>{EXERCISE_LIBRARY.length} exercises across your training plan.</p></div></section>
       <input className="library-search" aria-label="Search exercises" placeholder="Search exercises or muscle groups…" value={librarySearch} onChange={e => setLibrarySearch(e.target.value)}/>
-      <div className="library-filters">{LIBRARY_FILTERS.map(filter => <button key={filter} className={libraryFilter === filter ? "selected" : ""} onClick={() => setLibraryFilter(filter)}>{filter}</button>)}</div>
+      <div className="library-filter-group"><span className="library-filter-label">FILTER BY MUSCLE</span><div className="library-filters">{LIBRARY_FILTERS.map(filter => <button key={filter} className={libraryFilter === filter ? "selected" : ""} onClick={() => setLibraryFilter(filter)}>{filter}</button>)}</div></div>
+      <div className="library-filter-group"><span className="library-filter-label">FILTER BY PROGRAM / TYPE</span><div className="library-filters source-filters">{LIBRARY_SOURCE_FILTERS.map(filter => <button key={filter} className={librarySourceFilter === filter ? "selected" : ""} onClick={() => setLibrarySourceFilter(filter)}>{filter}</button>)}</div></div>
       <section className="library-list">{filteredLibrary.map(item => <article className="library-item" key={item.name}>
         <div className="library-item-heading"><div><strong>{item.name}</strong><small>{item.muscles.join(" · ")}</small></div><span>{item.sources.includes("Wild Card") ? "Wild Card" : item.sources.includes("Bonus") ? "Bonus" : "Program"}</span></div>
         <div className="library-item-meta"><span>{item.sources.join(" · ")}</span><span>{item.prescriptions.join(" / ")}</span></div>
