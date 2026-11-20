@@ -55,7 +55,7 @@ const WILD_CARD_POOLS = {
   push: [["DB floor press","3 sets · 10 reps"],["Cable chest fly","3 sets · 12 reps"],["Close-grip push-up","3 sets · 8–12 reps"],["Smith machine bench press","3 sets · 8–10 reps"]],
   pull: [["Seated cable row","3 sets · 10 reps"],["Straight-arm pulldown","3 sets · 12 reps"],["Reverse-grip lat pulldown","3 sets · 10 reps"],["Cable rear-delt row","3 sets · 12 reps"]],
   legs: [["DB split squat","3 sets · 8 each"],["Lateral lunge","3 sets · 8 each"],["Single-leg DB Romanian deadlift","3 sets · 8 each"],["Smith machine squat","3 sets · 10 reps"]],
-  finisher: [["Rower sprint","4 rounds · 30 sec"],["Bike sprint","4 rounds · 30 sec"],["Incline treadmill walk","4 rounds · 1 min"],["Farmer carry","4 rounds · 30 sec"]]
+  finisher: [["Rower sprint","4 rounds · 30 sec"],["Bike sprint","4 rounds · 30 sec"],["Incline treadmill walk","4 rounds · 1 min"],["Elliptical intervals","4 rounds · 1 min"]]
 };
 function generateWildCard(profile) {
   const shuffle = items => [...items].sort(() => Math.random() - 0.5);
@@ -94,6 +94,7 @@ const EXERCISE_GUIDES = {
   "Lateral lunge":["A side-to-side lunge that trains the hips and legs in a different plane.",["Stand tall and take a wide step to one side.","Sit hips back over the stepping leg while the other leg stays long.","Push through the bent leg to return to center."],"Avoid letting the stepping foot roll inward."],
   "Single-leg DB Romanian deadlift":["A single-leg hip hinge for hamstrings, glutes and balance.",["Hinge at the hip as the free leg reaches back.","Keep hips square and spine neutral.","Return to standing with control."],"Avoid rotating your hips open or rounding your back."],
   "Smith machine squat":["A guided-bar squat variation. Set the safety stops before loading.",["Position the bar comfortably across your upper back and set feet securely.","Brace and squat to a depth you can control.","Drive through the whole foot to stand."],"Avoid bouncing at the bottom or letting knees cave inward."],
+  "Elliptical intervals":["A low-impact conditioning interval on the elliptical.",["Set resistance and incline to a moderate level you can sustain.","Build to a brisk pace for the work interval while staying upright.","Ease off during recovery and keep the motion smooth."],"Avoid leaning heavily on the handles or letting your stride get choppy."],
   "Rower sprint":["A short rowing-machine interval. Focus on smooth power rather than all-out speed.",["Push with legs first, then lean back slightly and pull the handle in.","Recover hands away, hinge forward, then bend knees.","Use a sustainable hard effort for each interval."],"Avoid yanking with your arms first or rushing recovery."],
   "Bike sprint":["A short interval on the upright or recumbent bike.",["Set resistance so you can pedal quickly with control.","Build speed smoothly for the work interval.","Ease off and pedal lightly during recovery."],"Avoid resistance so high that your cadence breaks down."],
   "Incline treadmill walk":["A brisk uphill walk for a low-impact conditioning finisher.",["Choose a moderate incline and a pace you can control.","Walk tall without leaning heavily on the rails.","Reduce incline or speed if your form changes."],"Avoid hanging on the rails or choosing an incline that strains your back."],
