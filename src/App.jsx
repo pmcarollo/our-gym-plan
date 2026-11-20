@@ -9,28 +9,28 @@ const WEEK_KEY = "gym-week";
 
 const PROGRAM = [
   { id: "A", name: "Upper Body 1", focus: "Chest · Back · Triceps", pairs: [
-    [["DB bench press", "3 sets · 10 reps"], ["Lat pulldown", "3 sets · 10 reps"]],
-    [["One-arm DB row", "3 sets · 10 each"], ["Rope triceps pressdown", "3 sets · 10 reps"]],
-    [["Incline DB press", "3 sets · 10 reps"], ["Overhead DB triceps extension", "3 sets · 10 reps"]],
-    [["Push-up", "Bonus · 3 sets"], ["Face pull", "Bonus · 3 sets"]]
+    [["DB bench press", "4 sets · 10 reps"], ["Lat pulldown", "4 sets · 10 reps"]],
+    [["One-arm DB row", "4 sets · 10 each"], ["Rope triceps pressdown", "4 sets · 10 reps"]],
+    [["Incline DB press", "4 sets · 10 reps"], ["Overhead DB triceps extension", "4 sets · 10 reps"]],
+    [["Push-up", "Bonus · 4 sets · 10 reps"], ["Face pull", "Bonus · 4 sets · 10 reps"]]
   ]},
   { id: "B", name: "Lower Body", focus: "Quads · Hamstrings · Glutes", pairs: [
-    [["Goblet squat", "3 sets · 10 reps"], ["DB Romanian deadlift", "3 sets · 10 reps"]],
-    [["Leg press", "3 sets · 10 reps"], ["Seated hamstring curl", "3 sets · 10 reps"]],
-    [["Standing calf raise", "3 sets · 12 reps"], ["Hip thrust machine", "3 sets · 10 reps"]],
-    [["Reverse lunge", "Bonus · 3 sets"], ["Leg extension", "Bonus · 3 sets"]]
+    [["Goblet squat", "4 sets · 10 reps"], ["DB Romanian deadlift", "4 sets · 10 reps"]],
+    [["Leg press", "4 sets · 10 reps"], ["Seated hamstring curl", "4 sets · 10 reps"]],
+    [["Standing calf raise", "4 sets · 10 reps"], ["Hip thrust machine", "4 sets · 10 reps"]],
+    [["Reverse lunge", "Bonus · 4 sets · 10 reps"], ["Leg extension", "Bonus · 4 sets · 10 reps"]]
   ]},
   { id: "C", name: "Upper Body 2", focus: "Shoulders · Back · Biceps", pairs: [
-    [["Seated DB shoulder press", "3 sets · 10 reps"], ["Chest-supported DB row", "3 sets · 10 reps"]],
-    [["DB lateral raise", "3 sets · 12 reps"], ["Hammer curl", "3 sets · 10 reps"]],
-    [["Face pull", "3 sets · 12 reps"], ["Alternating DB curl", "3 sets · 10 reps"]],
-    [["Rear delt fly", "Bonus · 3 sets"], ["Incline DB curl", "Bonus · 3 sets"]]
+    [["Seated DB shoulder press", "4 sets · 10 reps"], ["Chest-supported DB row", "4 sets · 10 reps"]],
+    [["DB lateral raise", "4 sets · 10 reps"], ["Hammer curl", "4 sets · 10 reps"]],
+    [["Face pull", "4 sets · 10 reps"], ["Alternating DB curl", "4 sets · 10 reps"]],
+    [["Rear delt fly", "Bonus · 4 sets · 10 reps"], ["Incline DB curl", "Bonus · 4 sets · 10 reps"]]
   ]},
   { id: "D", name: "Full Body + Core", focus: "Strength · Stability · Core", pairs: [
-    [["DB step-up", "3 sets · 10 each"], ["Incline push-up", "3 sets · 10 reps"]],
-    [["DB deadlift", "3 sets · 10 reps"], ["Dead bug", "3 sets · 10 each"]],
-    [["Pallof press", "3 sets · 10 each"], ["Front plank", "3 sets · 30 sec"]],
-    [["Farmer carry", "Bonus · 3 rounds"], ["Cable wood chop", "Bonus · 3 sets"]]
+    [["DB step-up", "4 sets · 10 each"], ["Incline push-up", "4 sets · 10 reps"]],
+    [["DB deadlift", "4 sets · 10 reps"], ["Dead bug", "4 sets · 10 each"]],
+    [["Pallof press", "4 sets · 10 each"], ["Front plank", "4 sets · 10 reps"]],
+    [["Farmer carry", "Bonus · 4 sets · 10 reps"], ["Cable wood chop", "Bonus · 4 sets · 10 reps"]]
   ]}
 ];
 
