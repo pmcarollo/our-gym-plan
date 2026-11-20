@@ -188,3 +188,5 @@ button, .workout-card, .profile-button { -webkit-tap-highlight-color: transparen
 .wild-card-button{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;margin-top:13px;padding:0 14px;border:1px solid #b9c9b4;border-radius:11px;background:#fffefa;color:var(--green);font-size:13px;font-weight:700;text-align:left}
 .wild-card-button.is-complete{background:#e7efe3}
 .wild-card-note{margin:9px 0 0;color:var(--muted);font-size:10px;line-height:1.4}
+
+.workout-card:disabled,.wild-card-button:disabled{opacity:.55;cursor:not-allowed}
