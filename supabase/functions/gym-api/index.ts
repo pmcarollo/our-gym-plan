@@ -11,7 +11,11 @@ const json = (body: unknown, status = 200) =>
 
 const encoder = new TextEncoder();
 const b64url = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
-const decode = (value: string) => Uint8Array.from(atob(value.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
+const decode = (value: string) => {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+  return Uint8Array.from(atob(padded), c => c.charCodeAt(0));
+};
 
 async function sign(payload: object, secret: string) {
   const header = b64url(encoder.encode(JSON.stringify({ alg: "HS256", typ: "JWT" })));
