@@ -225,7 +225,7 @@ export default function App() {
     ? activePairOrder.reduce((count, pairIndex) => count + activeWorkout.pairs[pairIndex].filter((_, exerciseIndex) => payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]).length, 0)
     : 0;
   const week = payload.week || 1;
-  const completedThisWeek = useMemo(() => Math.min(4, new Set((payload.sessions || []).filter(s => s.week === week && s.completedAt).map(s => s.workoutId)).size), [payload, week]);
+  const completedThisWeek = useMemo(() => (payload.sessions || []).filter(s => s.week === week && s.completedAt).length, [payload, week]);
 
   useEffect(() => {
     const refreshClock = () => setNow(new Date());
@@ -545,7 +545,7 @@ export default function App() {
     <header className="topbar"><Brand /><div className="header-actions"><button className="person-switch" onClick={() => choosePerson(person === "Paul" ? "Chris" : "Paul")}>Switch to {person === "Paul" ? "Chris" : "Paul"}</button><button className="icon-button refresh-app-button" aria-label="Refresh app and check for updates" title="Refresh app and check for updates" onClick={forceRefreshApp}><RefreshCw size={15}/></button><button className="icon-button" aria-label="Lock app and sign out" title="Lock app and sign out" onClick={logout}><LogOut size={17}/></button></div></header>
     {screen === "home" ? <>
       <section className="greeting"><div><div className="eyebrow">LET'S GET AFTER IT</div><h2>{timeGreeting}, {person}.</h2><p>Week {week} · {easternTime} Eastern</p></div><div className="week-mark"><span>WEEK</span><strong>{String(week).padStart(2,"0")}</strong></div></section>
-      <section className="progress-card"><div className="progress-copy"><div className="eyebrow">THIS WEEK</div><strong>{completedThisWeek} of 4 workouts complete</strong><span>{completedThisWeek === 4 ? "That's a wrap. Nice work." : "Keep the rotation rolling."}</span><div className="progress-track"><i style={{width:`${completedThisWeek/4*100}%`}}/></div></div><div className="progress-icon"><Trophy size={21}/></div></section>
+      <section className={`progress-card ${completedThisWeek >= 4 ? "goal-reached" : ""}`}><div className="progress-copy"><div className="eyebrow">THIS WEEK</div><strong>{completedThisWeek >= 4 ? "4 of 4 goal complete" : `${completedThisWeek} of 4 workouts`}</strong><span>{completedThisWeek >= 4 ? "Goal hit. Keep going for extra credit." : "Build your week, one workout at a time."}</span><div className="progress-track"><i style={{width:`${Math.min(completedThisWeek,4)/4*100}%`}}/></div><div className="progress-meta"><span>WEEKLY GOAL</span>{completedThisWeek > 4 ? <b className="extra-credit">+{completedThisWeek-4} EXTRA CREDIT</b> : <span>{4-completedThisWeek} TO GO</span>}</div></div><div className="progress-icon"><Trophy size={23}/></div></section>
       <div className="section-heading"><div><div className="eyebrow">THE ROTATION</div><h3>Your workouts</h3></div><span className="muted-label">A – D</span></div>
       <button className="history-link" onClick={() => setScreen("history")}>View workout history <span>↗</span></button>
       {startedAt && workoutId && <div className="resume-workout-wrap"><button className="resume-workout" onClick={() => setScreen("workout")}><span><strong>Resume {activeWorkout?.name || "workout"}</strong><small>In-progress workout · saved on this device</small></span><span>↗</span></button><button className="discard-workout" onClick={discardWorkout}>Discard workout</button></div>}
@@ -558,7 +558,7 @@ export default function App() {
       <div className="wild-card-section">
         <div className="wild-card-heading"><div><div className="eyebrow">WHEN YOU WANT SOMETHING DIFFERENT</div><strong>Wild Card</strong><small>Fresh push, pull, legs and finisher combinations, drawn from a separate exercise pool.</small></div><span className="wild-card-spark">✦</span></div>
         <button className={`wild-card-button ${wildCardCompleted ? "is-complete" : ""}`} disabled={Boolean(startedAt)} onClick={startWildCardWorkout}><span>{wildCardCompleted ? "Generate another Wild Card" : "Generate a Wild Card workout"}</span><span>↗</span></button>
-        <p className="wild-card-note">Shared weekly workout for Paul + Chris · counts toward your four-workout goal</p>
+        <p className="wild-card-note">Shared weekly workout for Paul + Chris · counts toward your 4-workout goal · extra sessions earn bonus credit</p>
       </div>
       <div className="week-navigation">
         <button className="previous-week-button" onClick={previousWeek} disabled={week <= 1}>← Previous week</button>
