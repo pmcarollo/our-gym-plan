@@ -7,6 +7,7 @@ const TOKEN_KEY = "our-gym-plan-token";
 const PERSON_KEY = "gym-person";
 const WEEK_KEY = "gym-week";
 const draftKey = profile => "our-gym-plan-draft-" + profile;
+const TEST_PROFILE_KEY = "our-gym-plan-test-profile";
 
 const PROGRAM = [
   { id: "A", name: "Upper Body 1", focus: "Chest · Back · Triceps", pairs: [
@@ -88,14 +89,15 @@ function currentCalendarWeekKey(date = new Date()) {
   const weekNumber = Math.ceil((((utcDate - yearStart) / 86400000) + 1) / 7);
   return utcDate.getUTCFullYear() + "-W" + String(weekNumber).padStart(2, "0");
 }
-function generateWildCard(week) {
-  // One deterministic Wild Card per plan week, shared by Paul and Chris
-  // across profiles and devices. Weights and completion remain profile-specific.
+function generateWildCard(week, disabledExercises = []) {
+  // Deterministic within a profile/week; disabled movements are excluded.
   const seed = "our-gym-plan-wildcard-v1-week-" + week;
-  const push = seededShuffle(WILD_CARD_POOLS.push, seed + "-push").slice(0,2);
-  const pull = seededShuffle(WILD_CARD_POOLS.pull, seed + "-pull").slice(0,2);
-  const legs = seededShuffle(WILD_CARD_POOLS.legs, seed + "-legs").slice(0,2);
-  const finisher = seededShuffle(WILD_CARD_POOLS.finisher, seed + "-finisher").slice(0,2);
+  const available = pool => pool.filter(([name]) => !disabledExercises.includes(name));
+  const push = seededShuffle(available(WILD_CARD_POOLS.push), seed + "-push").slice(0,2);
+  const pull = seededShuffle(available(WILD_CARD_POOLS.pull), seed + "-pull").slice(0,2);
+  const legs = seededShuffle(available(WILD_CARD_POOLS.legs), seed + "-legs").slice(0,2);
+  const finisher = seededShuffle(available(WILD_CARD_POOLS.finisher), seed + "-finisher").slice(0,2);
+  if ([push,pull,legs,finisher].some(group => group.length < 2)) throw new Error("Keep at least two available exercises in each Wild Card category.");
   const pairs = [
     ...seededShuffle([[push[0],pull[0]],[legs[0],finisher[0]],[push[1],pull[1]]], seed + "-pair-order"),
     [legs[1],finisher[1]]
@@ -252,6 +254,7 @@ export default function App() {
   const [libraryFilter, setLibraryFilter] = useState("All");
   const [librarySourceFilter, setLibrarySourceFilter] = useState("All");
   const [librarySearch, setLibrarySearch] = useState("");
+  const [libraryMessage, setLibraryMessage] = useState("");
   const [workoutId, setWorkoutId] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -347,9 +350,15 @@ export default function App() {
   async function loadProfile() {
     try {
       setBusy(true);
-      const result = await api("load", { token, profile: person });
-      const profile = result.profiles?.find(p => p.profile === person);
-      setPayload(profile?.payload && Object.keys(profile.payload).length ? profile.payload : emptyPayload());
+      if (person === "Test") {
+        const stored = localStorage.getItem(TEST_PROFILE_KEY);
+        const testPayload = stored ? JSON.parse(stored) : emptyPayload();
+        setPayload(testPayload && typeof testPayload === "object" ? testPayload : emptyPayload());
+      } else {
+        const result = await api("load", { token, profile: person });
+        const profile = result.profiles?.find(p => p.profile === person);
+        setPayload(profile?.payload && Object.keys(profile.payload).length ? profile.payload : emptyPayload());
+      }
       setError("");
     } catch (e) {
       setError(e.message);
@@ -360,7 +369,8 @@ export default function App() {
   async function save(next) {
     setPayload(next);
     try {
-      await api("save", { token, profile: person, payload: next });
+      if (person === "Test") localStorage.setItem(TEST_PROFILE_KEY, JSON.stringify(next));
+      else await api("save", { token, profile: person, payload: next });
       setError("");
     } catch (e) { setError(e.message); }
   }
@@ -437,10 +447,18 @@ export default function App() {
     setScreen("home");
   }
 
+  function availableCoreIndices() {
+    const disabled = payload.disabledExercises || [];
+    return CORE_BREAKS.map((item, i) => i).filter(i => !disabled.includes(CORE_BREAKS[i][0]));
+  }
+
   function startWorkout(id) {
-    const coreOrderKey = 'w' + week + '-' + id;
-    if (!payload.coreOrder?.[coreOrderKey]) {
-      const coreOrder = { ...(payload.coreOrder || {}), [coreOrderKey]: CORE_BREAKS.map((_, i) => i).sort(() => Math.random() - .5) };
+    const coreOrderKey = "w" + week + "-" + id;
+    const availableCore = availableCoreIndices();
+    if (availableCore.length < 2) { setError("Keep at least two optional core exercises enabled."); return; }
+    const existingCoreOrder = payload.coreOrder?.[coreOrderKey];
+    if (!existingCoreOrder || existingCoreOrder.slice(0,2).some(i => !availableCore.includes(i))) {
+      const coreOrder = { ...(payload.coreOrder || {}), [coreOrderKey]: seededShuffle(availableCore, "core-" + person + "-" + week + "-" + id) };
       save({ ...payload, coreOrder });
     }
     setWildCardWorkout(null);
@@ -454,7 +472,7 @@ export default function App() {
   }
 
   function startWildCardWorkout() {
-    const generated = generateWildCard(currentCalendarWeekKey());
+    const generated = generateWildCard(currentCalendarWeekKey(), payload.disabledExercises || []);
     const coreOrderKey = 'w' + week + '-E';
     const coreOrder = { ...(payload.coreOrder || {}), [coreOrderKey]: generated.coreOrder };
     const supersetOrder = { ...(payload.supersetOrder || {}), [coreOrderKey]: [0,1,2,3] };
@@ -537,7 +555,7 @@ export default function App() {
     const coreOrder = { ...(payload.coreOrder || {}) };
     PROGRAM.forEach(workout => {
       supersetOrder['w' + nextWeekNumber + '-' + workout.id] = [0, 1, 2, 3].sort(() => Math.random() - .5);
-      coreOrder['w' + nextWeekNumber + '-' + workout.id] = CORE_BREAKS.map((_, i) => i).sort(() => Math.random() - .5);
+      coreOrder["w" + nextWeekNumber + "-" + workout.id] = seededShuffle(availableCoreIndices(), "core-" + person + "-" + nextWeekNumber + "-" + workout.id);
     });
     save({ ...payload, week: nextWeekNumber, supersetOrder, coreOrder, done: {}, coreDone: {} });
     setShowNextWeekConfirm(false);
@@ -568,6 +586,28 @@ export default function App() {
 
   const orderedWorkouts = PROGRAM;
   const filteredLibrary = EXERCISE_LIBRARY.filter(item => (libraryFilter === "All" || item.muscles.includes(libraryFilter)) && (librarySourceFilter === "All" || item.sources.includes(librarySourceFilter)) && (item.name.toLowerCase().includes(librarySearch.toLowerCase()) || item.muscles.join(" ").toLowerCase().includes(librarySearch.toLowerCase())));
+  const disabledExercises = payload.disabledExercises || [];
+
+  function toggleExerciseAvailability(name) {
+    const isDisabled = disabledExercises.includes(name);
+    const nextDisabled = isDisabled ? disabledExercises.filter(item => item !== name) : [...disabledExercises, name];
+    const wildCardCategory = Object.entries(WILD_CARD_POOLS).find(([,pool]) => pool.some(([exercise]) => exercise === name));
+    if (!isDisabled && wildCardCategory) {
+      const remaining = wildCardCategory[1].filter(([exercise]) => !nextDisabled.includes(exercise));
+      if (remaining.length < 2) { setLibraryMessage("Keep at least two enabled exercises in each Wild Card category."); return; }
+    }
+    if (!isDisabled && CORE_BREAKS.some(([exercise]) => exercise === name) && CORE_BREAKS.filter(([exercise]) => !nextDisabled.includes(exercise)).length < 2) {
+      setLibraryMessage("Keep at least two optional core exercises enabled."); return;
+    }
+    setLibraryMessage("");
+    save({ ...payload, disabledExercises: nextDisabled });
+  }
+
+  function enterTestProfile() {
+    if (startedAt) { setError("Finish or discard your current workout before switching profiles."); return; }
+    if (!localStorage.getItem(TEST_PROFILE_KEY)) localStorage.setItem(TEST_PROFILE_KEY, JSON.stringify(emptyPayload()));
+    choosePerson("Test");
+  }
   const wildCardCompleted = payload.sessions?.some(s => s.workoutId === "E" && s.week === week && s.completedAt);
   const easternTime = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "numeric", minute: "2-digit", hour12: true }).format(now);
   const easternHour = Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "2-digit", hourCycle: "h23" }).format(now));
@@ -637,7 +677,8 @@ export default function App() {
       <button className="settings-library-card" onClick={() => setScreen("library")}><span className="settings-library-icon"><Library size={22}/></span><span><strong>Exercise Library</strong><small>{EXERCISE_LIBRARY.length} exercises · browse by muscle group, workout and training type</small></span><ArrowRight size={19}/></button>
       <div className="settings-note">The library brings together regular workouts, bonus movements, Wild Card options and optional core exercises.</div>
       <div className="settings-section-label">APP & PROFILE</div>
-      <button className="settings-action-card" onClick={() => choosePerson(person === "Paul" ? "Chris" : "Paul")}><span className="settings-action-icon"><RefreshCw size={19}/></span><span><strong>Switch profile</strong><small>Currently using {person} · switch to {person === "Paul" ? "Chris" : "Paul"}</small></span><ArrowRight size={19}/></button>
+      <button className="settings-action-card" onClick={() => choosePerson(person === "Test" ? "Paul" : person === "Paul" ? "Chris" : "Paul")}><span className="settings-action-icon"><RefreshCw size={19}/></span><span><strong>Switch profile</strong><small>Currently using {person} · switch to {person === "Test" ? "Paul" : person === "Paul" ? "Chris" : "Paul"}</small></span><ArrowRight size={19}/></button>
+      <button className="settings-action-card" onClick={enterTestProfile}><span className="settings-action-icon"><Dumbbell size={19}/></span><span><strong>{person === "Test" ? "Test profile active" : "Open test profile"}</strong><small>Separate local-only workouts, weights and history · only on this device</small></span><ArrowRight size={19}/></button>
       <button className="settings-action-card" onClick={logout}><span className="settings-action-icon"><Lock size={19}/></span><span><strong>Lock app</strong><small>Sign out and return to the unlock screen</small></span><ArrowRight size={19}/></button>
     </> : screen === "library" ? <>
       <button className="back-button" onClick={() => setScreen("settings")}>← Back to settings</button>
@@ -648,9 +689,12 @@ export default function App() {
       <section className="library-list">{filteredLibrary.map(item => <article className="library-item" key={item.name}>
         <div className="library-item-heading"><div><strong>{item.name}</strong><small>{item.muscles.join(" · ")}</small></div><span>{item.sources.includes("Wild Card") ? "Wild Card" : item.sources.includes("Bonus") ? "Bonus" : "Program"}</span></div>
         <div className="library-item-meta"><span>{item.sources.join(" · ")}</span><span>{item.prescriptions.join(" / ")}</span></div>
+        <div className="library-item-controls"><span className={disabledExercises.includes(item.name) ? "rotation-status is-disabled" : "rotation-status"}>{disabledExercises.includes(item.name) ? "Excluded from random rotation" : "In rotation"}</span><button className="rotation-toggle" onClick={() => toggleExerciseAvailability(item.name)}>{disabledExercises.includes(item.name) ? "Re-enable" : "Exclude from rotation"}</button></div>
+        {item.sources.some(source => ["Upper Body 1","Lower Body","Upper Body 2","Full Body + Core","Bonus"].includes(source)) && <small className="fixed-program-note">This exercise is also assigned in a fixed A–D workout; this setting does not remove that required assignment.</small>}
         <ExerciseGuide name={item.name}/>
       </article>)}{!filteredLibrary.length && <p className="history-empty">No exercises match that search.</p>}</section>
-      <p className="library-footnote">Exercises are indexed from the regular program, bonus pairs, Wild Card pool and optional core rotation. An exercise can appear in more than one place.</p>
+      {libraryMessage && <p className="error">{libraryMessage}</p>}
+      <p className="library-footnote">Excluded exercises are skipped by future Wild Card and optional-core selections. Fixed A–D assignments remain unchanged; completed history and saved weights are preserved.</p>
     </> : screen === "history" ? <>
       <button className="back-button" onClick={() => setScreen("home")}>← Back to workouts</button>
       <section className="greeting"><div><div className="eyebrow">YOUR TRAINING LOG</div><h2>Workout history</h2><p>{payload.sessions?.length || 0} completed workouts</p></div></section>
