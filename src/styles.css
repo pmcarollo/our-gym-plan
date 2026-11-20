@@ -608,3 +608,62 @@ h1 { font-family: Inter,ui-sans-serif,system-ui,sans-serif; font-weight: 850; le
     margin-left: 47px;
   }
 }
+
+
+/* Final date/time alignment: equal-width, equal-height fields at every phone width. */
+.workout-datetime {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: end;
+  gap: 12px;
+}
+.workout-date-label,
+.finish-time-field {
+  display: flex !important;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+}
+.workout-date-label input,
+.finish-time-field .live-finish-time {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100% !important;
+  min-width: 0;
+  height: 56px;
+  min-height: 56px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fffefa;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+.workout-date-label input {
+  text-align: center;
+}
+.finish-time-field .live-finish-time {
+  white-space: nowrap;
+}
+.live-progress-bottom {
+  flex-wrap: wrap;
+}
+.live-progress-bottom span:last-child {
+  color: #557b5c;
+  font-weight: 800;
+}
+@media(max-width:420px) {
+  .workout-datetime { gap: 9px; }
+  .workout-date-label input,
+  .finish-time-field .live-finish-time {
+    height: 52px;
+    min-height: 52px;
+    padding-inline: 5px;
+    font-size: 12px;
+  }
+}
