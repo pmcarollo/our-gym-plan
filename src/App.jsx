@@ -502,7 +502,7 @@ export default function App() {
         const core = CORE_BREAKS[coreIndex];
         return <div className="superset-and-core" key={index}>
         <article className={`superset-card ${complete ? "pair-complete" : ""}`}>
-          <header><div><span className="eyebrow">SUPERSET {displayIndex+1}</span></div><button className={`pair-check ${complete ? "checked" : ""}`} onClick={() => togglePair(index)}>{complete ? <Check size={17}/> : "Done"}</button></header>
+          <header><div className="superset-heading-copy"><span className="eyebrow">SUPERSET {displayIndex+1}</span><span className="pair-progress-label">{pair.filter((_, ei) => payload.done?.[exerciseKey(workoutId,index,ei)]).length} of {pair.length} exercises done</span></div><button className={`pair-check ${complete ? "checked" : ""}`} onClick={() => togglePair(index)}>{complete ? <Check size={17}/> : "Complete pair"}</button></header>
           {pair.map(([name,detail],ei) => <div className="exercise-row" key={name}><button className={`exercise-check ${payload.done?.[exerciseKey(workoutId,index,ei)] ? "checked" : ""}`} onClick={() => toggleExercise(index,ei)}>{payload.done?.[exerciseKey(workoutId,index,ei)] && <Check size={13}/>}</button><div className="exercise-name"><strong>{name}</strong><small>{detail}</small><ExerciseGuide name={name}/></div><label className="weight-input"><input inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} lb</small>}</label></div>)}
           <button className="rest-button" onClick={() => setRest(60)}><Timer size={14}/> Rest 60 sec</button>
         </article>
