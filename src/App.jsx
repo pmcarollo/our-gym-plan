@@ -6,6 +6,7 @@ const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
 const TOKEN_KEY = "our-gym-plan-token";
 const PERSON_KEY = "gym-person";
 const WEEK_KEY = "gym-week";
+const draftKey = profile => "our-gym-plan-draft-" + profile;
 
 const PROGRAM = [
   { id: "A", name: "Upper Body 1", focus: "Chest · Back · Triceps", pairs: [
@@ -139,6 +140,32 @@ export default function App() {
   }, [token, person]);
 
   useEffect(() => {
+    if (!person) return;
+    try {
+      const raw = localStorage.getItem(draftKey(person));
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (!draft?.workoutId || !draft?.startedAt) return;
+      setWorkoutId(draft.workoutId);
+      setStartedAt(draft.startedAt);
+      setWorkoutDate(draft.workoutDate || todayKey());
+      setWorkoutTime(draft.workoutTime || currentTimeKey());
+      setScreen("workout");
+    } catch {
+      localStorage.removeItem(draftKey(person));
+    }
+  }, [person]);
+
+  useEffect(() => {
+    if (!person) return;
+    if (startedAt && workoutId) {
+      localStorage.setItem(draftKey(person), JSON.stringify({ workoutId, startedAt, workoutDate, workoutTime }));
+    } else {
+      localStorage.removeItem(draftKey(person));
+    }
+  }, [person, workoutId, startedAt, workoutDate, workoutTime]);
+
+  useEffect(() => {
     if (!startedAt || !activeWorkout) return;
     const eastern = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "numeric", minute: "2-digit", hour12: false }).format(now);
     const [h, m] = eastern.split(":").map(Number);
@@ -232,6 +259,7 @@ export default function App() {
       exerciseSnapshot: activeWorkout.pairs.map((pair, pairIndex) => pair.map(([name, detail], exerciseIndex) => ({ name, detail, weight: payload.weights?.[name] || "", completed: Boolean(payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]) })))
     }];
     save({ ...payload, sessions });
+    localStorage.removeItem(draftKey(person));
     setStartedAt(null);
     setScreen("home");
     setNotice("");
@@ -280,6 +308,7 @@ export default function App() {
       <section className="greeting"><div><div className="eyebrow">LET'S GET AFTER IT</div><h2>Morning, {person}.</h2><p>Week {week} · {easternTime} Eastern</p></div><div className="week-mark"><span>WEEK</span><strong>{String(week).padStart(2,"0")}</strong></div></section>
       <section className="progress-card"><div className="progress-copy"><div className="eyebrow">THIS WEEK</div><strong>{completedThisWeek} of 4 workouts complete</strong><span>{completedThisWeek === 4 ? "That's a wrap. Nice work." : "Keep the rotation rolling."}</span><div className="progress-track"><i style={{width:`${completedThisWeek/4*100}%`}}/></div></div><div className="progress-icon"><Trophy size={21}/></div></section>
       <div className="section-heading"><div><div className="eyebrow">THE ROTATION</div><h3>Your workouts</h3></div><span className="muted-label">A – D</span></div>
+      {startedAt && workoutId && <button className="resume-workout" onClick={() => setScreen("workout")}><span><strong>Resume {PROGRAM.find(w => w.id === workoutId)?.name || "workout"}</strong><small>In-progress workout · saved on this device</small></span><span>↗</span></button>}
       <section className="workout-list">{orderedWorkouts.map(w => {
         const done = payload.sessions.find(s => s.workoutId === w.id && s.week === week);
         return <button className={`workout-card ${done ? "is-complete" : ""}`} key={w.id} onClick={() => startWorkout(w.id)}>
@@ -290,10 +319,10 @@ export default function App() {
       <div className="footer-note"><Clock3 size={14}/> Workout cutoff · 6:50 AM Eastern</div>
       {busy && <p className="muted-label">Syncing…</p>}
     </> : activeWorkout && <>
-      <button className="back-button" onClick={() => {setScreen("home");setStartedAt(null);}}>← All workouts</button>
+      <button className="back-button" onClick={() => setScreen("home")}>← All workouts</button>
       <section className="greeting workout-heading"><div><div className="eyebrow">WORKOUT {activeWorkout.id} · WEEK {week}</div><h2>{activeWorkout.name}</h2><p>{activeWorkout.focus}</p></div></section>
       {notice && <div className="warning-banner"><Clock3 size={18}/><span>{notice}</span><button onClick={() => setNotice("")}>×</button></div>}
-      <div className="workout-controls"><span className="muted-label">3 required supersets · 1 optional bonus</span><label className="workout-date-label">Workout date<input aria-label="Workout date" type="date" value={workoutDate} max={todayKey()} onChange={e => setWorkoutDate(e.target.value)} /></label><label className="workout-date-label">Completion time<input aria-label="Completion time" type="time" value={workoutTime} max={workoutDate === todayKey() ? currentTimeKey() : undefined} onChange={e => setWorkoutTime(e.target.value)} /></label><span className="muted-label">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
+      <div className="workout-controls"><span className="muted-label">3 required supersets · 1 optional bonus</span><div className="workout-datetime"><label className="workout-date-label">Workout date<input aria-label="Workout date" type="date" value={workoutDate} max={todayKey()} onChange={e => setWorkoutDate(e.target.value)} /></label><label className="workout-date-label">Completion time<input aria-label="Completion time" type="time" value={workoutTime} max={workoutDate === todayKey() ? currentTimeKey() : undefined} onChange={e => setWorkoutTime(e.target.value)} /></label></div><span className="muted-label">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
       <section className="superset-list">{(payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3]).slice(0,3).map((pairIndex,displayIndex) => {
         const pair = activeWorkout.pairs[pairIndex];
         const index = pairIndex;
