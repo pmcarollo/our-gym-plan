@@ -176,3 +176,15 @@ button, .workout-card, .profile-button { -webkit-tap-highlight-color: transparen
   .pair-progress-label{font-size:10px}
   .pair-check{min-width:72px;padding-inline:8px;font-size:10px}
 }
+
+
+/* Optional Wild Card session is distinct from the four-day core rotation. */
+.wild-card-section{margin-top:18px;padding:16px;border:1px solid #d8dfd1;border-radius:16px;background:#f2f4ec}
+.wild-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.wild-card-heading>div{display:grid;gap:5px}
+.wild-card-heading strong{font:600 21px Fraunces,Georgia,serif;color:var(--green)}
+.wild-card-heading small{max-width:390px;color:#68776a;font-size:12px;line-height:1.45}
+.wild-card-spark{display:grid;place-items:center;width:35px;height:35px;border-radius:11px;background:#e1e8d9;color:#4d704f;font-size:20px}
+.wild-card-button{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;margin-top:13px;padding:0 14px;border:1px solid #b9c9b4;border-radius:11px;background:#fffefa;color:var(--green);font-size:13px;font-weight:700;text-align:left}
+.wild-card-button.is-complete{background:#e7efe3}
+.wild-card-note{margin:9px 0 0;color:var(--muted);font-size:10px;line-height:1.4}
