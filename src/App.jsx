@@ -18,7 +18,7 @@ const PROGRAM = [
   { id: "B", name: "Lower Body", focus: "Quads · Hamstrings · Glutes", pairs: [
     [["Goblet squat", "4 sets · 10 reps"], ["DB Romanian deadlift", "4 sets · 10 reps"]],
     [["Leg press", "4 sets · 10 reps"], ["Seated hamstring curl", "4 sets · 10 reps"]],
-    [["Standing calf raise", "4 sets · 10 reps"], ["Hip thrust machine", "4 sets · 10 reps"]],
+    [["Standing calf raise", "4 sets · 10 reps"], ["DB hip thrust", "4 sets · 10 reps"]],
     [["Reverse lunge", "Bonus · 4 sets · 10 reps"], ["Leg extension", "Bonus · 4 sets · 10 reps"]]
   ]},
   { id: "C", name: "Upper Body 2", focus: "Shoulders · Back · Biceps", pairs: [
@@ -64,7 +64,8 @@ const EXERCISE_GUIDES = {
   "Leg press": ["A machine squat pattern that emphasizes the quads and glutes.", ["Set feet about shoulder width on the platform.", "Lower until knees bend comfortably without hips curling up.", "Press through the whole foot without locking knees hard."], "Avoid letting knees cave in or lowering so far your pelvis rolls."],
   "Seated hamstring curl": ["A machine exercise that bends the knee to train hamstrings.", ["Align the machine pivot with your knee joint.", "Keep hips down and curl the pad toward you.", "Return slowly without letting the stack slam."], "Avoid lifting your hips or using momentum."],
   "Standing calf raise": ["A heel raise that strengthens the calf muscles.", ["Keep knees soft and stand tall.", "Rise onto the balls of your feet as high as comfortable.", "Pause briefly, then lower through a full stretch."], "Avoid bouncing through the bottom."],
-  "Hip thrust machine": ["A loaded hip extension that emphasizes the glutes.", ["Position the pad across your hips and feet about hip width.", "Brace, then drive hips up by squeezing glutes.", "Finish with ribs down and hips extended, then lower slowly."], "Avoid over-arching your lower back at the top."],
+  "DB hip thrust": ["A dumbbell-loaded hip extension that emphasizes the glutes. A Smith machine can be used as an optional heavier variation once you are comfortable with the setup.", ["Sit with your upper back supported against a flat bench and place a padded dumbbell across your hip crease.", "Plant your feet about hip-width apart and drive through your whole foot to raise your hips.", "Finish with your ribs down and glutes squeezed, then lower under control."], "Avoid over-arching your lower back or placing an unpadded dumbbell directly on your hip bones."],
+  "Smith machine hip thrust": ["A guided-bar variation that makes it easier to load a hip thrust progressively. Use a proper bar pad and set the safety stops before starting.", ["Sit with your upper back against a bench and position the padded Smith bar across your hip crease.", "Unlock the bar, plant your feet and drive hips upward until your torso is roughly parallel to the floor.", "Lower with control and re-rack the bar securely before changing your setup."], "Avoid starting without checking the bar hooks and safety stops. The bar should rest on your hips, not your stomach."],
   "Reverse lunge": ["A single-leg squat stepping backward to train legs and balance.", ["Step back far enough to keep the front heel planted.", "Lower both knees under control.", "Push through the front foot to return to standing."], "Avoid wobbling or letting the front knee collapse inward."],
   "Leg extension": ["A machine exercise that isolates the quadriceps.", ["Align the machine pivot with your knee.", "Extend knees smoothly without snapping them straight.", "Lower slowly through the full comfortable range."], "Avoid swinging the weight or lifting your hips."],
   "Seated DB shoulder press": ["An overhead press for shoulders and triceps.", ["Sit tall with feet planted and dumbbells near shoulder height.", "Brace your core and press overhead in a controlled path.", "Lower until elbows are just below shoulder level if comfortable."], "Avoid excessive lower-back arching or shrugging."],
@@ -322,7 +323,7 @@ export default function App() {
     // Completion is recorded at the actual moment the user finishes.
     const completedAt = new Date().toISOString();
     const sessions = [...(payload.sessions || []), {
-      id: crypto.randomUUID(), workoutId, week, profile: person,
+      id: crypto.randomUUID(), workoutId, workoutName: activeWorkout.name, week, profile: person,
       startedAt: startedAt || completedAt, completedAt, workoutDate,
       bonusDone: Boolean(payload.done?.[exerciseKey(workoutId, (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], 0)] || payload.done?.[exerciseKey(workoutId, (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], 1)]),
       coreSnapshot: (payload.coreOrder?.['w' + week + '-' + workoutId] || [0,1,2,3,4,5,6,7]).slice(0,3).map((coreIndex, displayIndex) => {
@@ -451,7 +452,7 @@ export default function App() {
         {[...(payload.sessions || [])].sort((a,b) => new Date(b.completedAt) - new Date(a.completedAt)).map(session => {
           const workout = PROGRAM.find(w => w.id === session.workoutId);
           return <article className="history-card" key={session.id}>
-            <div className="history-card-head"><div><span className="eyebrow">WEEK {session.week || "—"}</span><h3>{workout?.name || `Workout ${session.workoutId}`}</h3></div><time>{session.completedAt ? new Date(session.completedAt).toLocaleDateString([], {month:"short",day:"numeric",year:"numeric"}) : "Date unavailable"}</time></div>
+            <div className="history-card-head"><div><span className="eyebrow">WEEK {session.week || "—"}</span><h3>{session.workoutName || workout?.name || `Workout ${session.workoutId}`}</h3></div><time>{session.completedAt ? new Date(session.completedAt).toLocaleDateString([], {month:"short",day:"numeric",year:"numeric"}) : "Date unavailable"}</time></div>
             <p className="history-time">{session.completedAt ? "Finished " + new Date(session.completedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : ""}{session.startedAt && session.completedAt ? " · " + Math.max(1, Math.round((new Date(session.completedAt) - new Date(session.startedAt)) / 60000)) + " min" : ""}</p>
             <div className="history-weights">
               <strong>Weights recorded</strong>
