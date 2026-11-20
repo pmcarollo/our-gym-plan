@@ -93,3 +93,8 @@
 
 .resume-workout-wrap { display: grid; gap: 0; margin-bottom: 12px; border: 1px solid #b6cbb2; border-radius: 14px; background: #edf3e9; overflow: hidden; }
 .discard-workout { justify-self: start; margin: 0 15px 10px; padding: 3px 0; border: 0; background: transparent; color: #9b5e50; font: inherit; font-size: 11px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+
+
+.person-switch { padding: 5px 3px; border: 0; background: transparent; color: var(--muted); font-size: 10px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+.person-switch:active { color: var(--green); }
+.icon-button { color: var(--muted); }
