@@ -22,3 +22,34 @@
 .resume-workout>span:first-child{display:grid;gap:4px;}
 .resume-workout strong{font:600 16px Fraunces,Georgia,serif;}
 .resume-workout small{color:var(--muted);font-size:10px;}
+
+
+/* Optional core breaks between required supersets */
+.superset-and-core { display: flex; flex-direction: column; gap: 10px; }
+.core-break {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 4px 8px;
+  padding: 13px 15px;
+  border: 1px dashed var(--line, #cbd5c1);
+  border-radius: 13px;
+  background: rgba(238, 241, 232, .55);
+}
+.core-break-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.core-break-copy strong { font-size: .94rem; }
+.core-break-copy small { color: var(--muted, #697568); line-height: 1.35; }
+.core-check {
+  border: 1px solid var(--line, #cbd5c1);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: transparent;
+  color: var(--ink, #243b2d);
+  font: inherit;
+  font-size: .75rem;
+  white-space: nowrap;
+}
+.core-check.checked { background: var(--green, #2b643f); color: white; border-color: var(--green, #2b643f); }
+.core-break .exercise-guide { grid-column: 1 / -1; margin-top: 0; }
+.core-done { opacity: .72; }
