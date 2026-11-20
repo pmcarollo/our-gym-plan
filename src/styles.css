@@ -160,3 +160,19 @@ button, .workout-card, .profile-button { -webkit-tap-highlight-color: transparen
   .live-progress-card{padding:13px}
   .live-progress-status{max-width:130px}
 }
+
+
+/* More readable exercise instructions and set-by-set feedback. */
+.superset-heading-copy{display:grid;gap:4px}
+.pair-progress-label{color:var(--muted);font-size:11px;font-weight:600}
+.exercise-guide{margin-top:7px;padding:9px 10px;border:1px solid #e7eae1;border-radius:10px;background:#fafbf7;font-size:12px}
+.exercise-guide summary{min-height:32px;gap:7px;font-size:12px}
+.exercise-guide p{font-size:12px;line-height:1.55}
+.exercise-guide strong{font-size:12px}
+.exercise-guide ul{gap:6px;font-size:12px;line-height:1.5}
+.exercise-guide .guide-mistake{padding:9px 10px}
+.exercise-guide a{min-height:34px;margin-top:3px;font-size:12px}
+@media(max-width:420px){
+  .pair-progress-label{font-size:10px}
+  .pair-check{min-width:72px;padding-inline:8px;font-size:10px}
+}
