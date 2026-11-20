@@ -189,7 +189,7 @@ export default function App() {
   async function loadProfile() {
     try {
       setBusy(true);
-      const result = await api("load", { token });
+      const result = await api("load", { token, profile: person });
       const profile = result.profiles?.find(p => p.profile === person);
       setPayload(profile?.payload && Object.keys(profile.payload).length ? profile.payload : emptyPayload());
       setError("");
@@ -319,10 +319,8 @@ export default function App() {
   }
 
   function completeWorkout() {
-    // Combine the selected local date and time into the saved completion timestamp.
-    const [year, month, day] = workoutDate.split("-").map(Number);
-    const [hours, minutes] = workoutTime.split(":").map(Number);
-    const completedAt = new Date(year, month - 1, day, hours, minutes, 0).toISOString();
+    // Completion is recorded at the actual moment the user finishes.
+    const completedAt = new Date().toISOString();
     const sessions = [...(payload.sessions || []), {
       id: crypto.randomUUID(), workoutId, week, profile: person,
       startedAt: startedAt || completedAt, completedAt, workoutDate,
@@ -390,12 +388,14 @@ export default function App() {
 
   const orderedWorkouts = PROGRAM;
   const easternTime = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "numeric", minute: "2-digit", hour12: true }).format(now);
+  const easternHour = Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "2-digit", hourCycle: "h23" }).format(now));
+  const timeGreeting = easternHour < 12 ? "Morning" : easternHour < 17 ? "Afternoon" : "Evening";
 
   if (!token) return <main className="app-shell auth-shell">
     <Brand />
     <section className="welcome-panel">
       <div className="eyebrow">A LITTLE WORK GOES A LONG WAY</div>
-      <h2>Good morning.</h2>
+      <h2>Good {timeGreeting.toLowerCase()}.</h2>
       <p>Enter your shared gym passcode to get started.</p>
       <form className="pin-form" onSubmit={login}>
         <label htmlFor="pin">Shared passcode</label>
@@ -416,7 +416,7 @@ export default function App() {
   return <main className="app-shell">
     <header className="topbar"><Brand /><div className="header-actions"><button className="person-switch" onClick={() => choosePerson(person === "Paul" ? "Chris" : "Paul")}>Switch to {person === "Paul" ? "Chris" : "Paul"}</button><button className="icon-button refresh-app-button" aria-label="Refresh app and check for updates" title="Refresh app and check for updates" onClick={forceRefreshApp}><RefreshCw size={15}/></button><button className="icon-button" aria-label="Lock app and sign out" title="Lock app and sign out" onClick={logout}><LogOut size={17}/></button></div></header>
     {screen === "home" ? <>
-      <section className="greeting"><div><div className="eyebrow">LET'S GET AFTER IT</div><h2>Morning, {person}.</h2><p>Week {week} · {easternTime} Eastern</p></div><div className="week-mark"><span>WEEK</span><strong>{String(week).padStart(2,"0")}</strong></div></section>
+      <section className="greeting"><div><div className="eyebrow">LET'S GET AFTER IT</div><h2>{timeGreeting}, {person}.</h2><p>Week {week} · {easternTime} Eastern</p></div><div className="week-mark"><span>WEEK</span><strong>{String(week).padStart(2,"0")}</strong></div></section>
       <section className="progress-card"><div className="progress-copy"><div className="eyebrow">THIS WEEK</div><strong>{completedThisWeek} of 4 workouts complete</strong><span>{completedThisWeek === 4 ? "That's a wrap. Nice work." : "Keep the rotation rolling."}</span><div className="progress-track"><i style={{width:`${completedThisWeek/4*100}%`}}/></div></div><div className="progress-icon"><Trophy size={21}/></div></section>
       <div className="section-heading"><div><div className="eyebrow">THE ROTATION</div><h3>Your workouts</h3></div><span className="muted-label">A – D</span></div>
       <button className="history-link" onClick={() => setScreen("history")}>View workout history <span>↗</span></button>
@@ -452,7 +452,7 @@ export default function App() {
           const workout = PROGRAM.find(w => w.id === session.workoutId);
           return <article className="history-card" key={session.id}>
             <div className="history-card-head"><div><span className="eyebrow">WEEK {session.week || "—"}</span><h3>{workout?.name || `Workout ${session.workoutId}`}</h3></div><time>{session.completedAt ? new Date(session.completedAt).toLocaleDateString([], {month:"short",day:"numeric",year:"numeric"}) : "Date unavailable"}</time></div>
-            <p className="history-time">{session.completedAt ? new Date(session.completedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : ""}</p>
+            <p className="history-time">{session.completedAt ? "Finished " + new Date(session.completedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : ""}{session.startedAt && session.completedAt ? " · " + Math.max(1, Math.round((new Date(session.completedAt) - new Date(session.startedAt)) / 60000)) + " min" : ""}</p>
             <div className="history-weights">
               <strong>Weights recorded</strong>
               {session.exerciseSnapshot?.flat().filter(item => item.weight !== "" && item.weight != null).length ? session.exerciseSnapshot.flat().filter(item => item.weight !== "" && item.weight != null).map(item => <div className="history-exercise-row" key={item.name}><span>{item.name}</span><span>{item.weight} lb</span></div>) : <p className="history-no-weights">No weights recorded</p>}
@@ -466,7 +466,7 @@ export default function App() {
       <button className="back-button" onClick={() => setScreen("home")}>← All workouts</button>
       <section className="greeting workout-heading"><div><div className="eyebrow">WORKOUT {activeWorkout.id} · WEEK {week}</div><h2>{activeWorkout.name}</h2><p>{activeWorkout.focus}</p></div></section>
       {notice && <div className="warning-banner"><Clock3 size={18}/><span>{notice}</span><button onClick={() => setNotice("")}>×</button></div>}
-      <div className="workout-controls"><span className="muted-label">3 required supersets · 1 optional bonus</span><div className="workout-datetime"><label className="workout-date-label">Workout date<input aria-label="Workout date" type="date" value={workoutDate} max={todayKey()} onChange={e => setWorkoutDate(e.target.value)} /></label><label className="workout-date-label">Completion time<input aria-label="Completion time" type="time" value={workoutTime} max={workoutDate === todayKey() ? currentTimeKey() : undefined} onChange={e => setWorkoutTime(e.target.value)} /></label></div><span className="muted-label">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
+      <div className="workout-controls"><span className="muted-label">3 required supersets · 1 optional bonus</span><div className="workout-datetime"><label className="workout-date-label">Workout date<input aria-label="Workout date" type="date" value={workoutDate} max={todayKey()} onChange={e => setWorkoutDate(e.target.value)} /></label><div className="workout-date-label"><span className="muted-label">Finish time</span><strong className="live-finish-time">{easternTime} Eastern</strong></div></div><span className="muted-label">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
       <section className="superset-list">{(payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3]).slice(0,3).map((pairIndex,displayIndex) => {
         const pair = activeWorkout.pairs[pairIndex];
         const index = pairIndex;
