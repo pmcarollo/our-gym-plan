@@ -43,7 +43,11 @@ const CORE_BREAKS = [
   ["Reverse crunch", "10–12 reps", "Curl your hips gently off the floor without swinging."],
   ["Bird dog", "8–10 each side", "Reach opposite arm and leg while keeping hips level."],
   ["Side plank", "20–30 seconds each side", "Keep hips lifted and your body in a straight line."],
-  ["Mountain climber", "20 total reps", "Move steadily while keeping your torso stable."]
+  ["Mountain climber", "20 total reps", "Move steadily while keeping your torso stable."],
+  ["Bicycle crunch", "10–12 each side", "Rotate through your ribs and move slowly without pulling your neck."],
+  ["Heel taps", "12–15 each side", "Keep shoulders slightly raised and reach side to side."],
+  ["Bear plank shoulder tap", "8–10 each side", "Hover knees just off the floor and resist rocking your hips."],
+  ["Glute bridge march", "8–10 each side", "Keep hips level as you slowly lift one foot at a time."]
 ];
 
 const EXERCISE_GUIDES = {
@@ -230,6 +234,11 @@ export default function App() {
   }
 
   function startWorkout(id) {
+    const coreOrderKey = 'w' + week + '-' + id;
+    if (!payload.coreOrder?.[coreOrderKey]) {
+      const coreOrder = { ...(payload.coreOrder || {}), [coreOrderKey]: CORE_BREAKS.map((_, i) => i).sort(() => Math.random() - .5) };
+      save({ ...payload, coreOrder });
+    }
     setWorkoutId(id);
     setWorkoutDate(todayKey());
     setWorkoutTime(currentTimeKey());
