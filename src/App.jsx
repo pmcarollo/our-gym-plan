@@ -303,6 +303,15 @@ export default function App() {
     save({ ...payload, weights });
   }
 
+  function lastUsedWeight(name) {
+    const sessions = [...(payload.sessions || [])].sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0));
+    for (const session of sessions) {
+      const exercise = session.exerciseSnapshot?.flat().find(item => item.name === name && item.weight !== "");
+      if (exercise) return exercise.weight;
+    }
+    return "";
+  }
+
   const orderedWorkouts = PROGRAM;
   const easternTime = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "numeric", minute: "2-digit", hour12: true }).format(now);
 
@@ -374,7 +383,7 @@ export default function App() {
         return <div className="superset-and-core" key={index}>
         <article className={`superset-card ${complete ? "pair-complete" : ""}`}>
           <header><div><span className="eyebrow">SUPERSET {displayIndex+1}</span></div><button className={`pair-check ${complete ? "checked" : ""}`} onClick={() => togglePair(index)}>{complete ? <Check size={17}/> : "Done"}</button></header>
-          {pair.map(([name,detail],ei) => <div className="exercise-row" key={name}><button className={`exercise-check ${payload.done?.[exerciseKey(workoutId,index,ei)] ? "checked" : ""}`} onClick={() => toggleExercise(index,ei)}>{payload.done?.[exerciseKey(workoutId,index,ei)] && <Check size={13}/>}</button><div className="exercise-name"><strong>{name}</strong><small>{detail}</small><ExerciseGuide name={name}/></div><label className="weight-input"><input inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span></label></div>)}
+          {pair.map(([name,detail],ei) => <div className="exercise-row" key={name}><button className={`exercise-check ${payload.done?.[exerciseKey(workoutId,index,ei)] ? "checked" : ""}`} onClick={() => toggleExercise(index,ei)}>{payload.done?.[exerciseKey(workoutId,index,ei)] && <Check size={13}/>}</button><div className="exercise-name"><strong>{name}</strong><small>{detail}</small><ExerciseGuide name={name}/></div><label className="weight-input"><input inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} lb</small>}</label></div>)}
           <button className="rest-button" onClick={() => setRest(60)}><Timer size={14}/> Rest 60 sec</button>
         </article>
         <div className={`core-break ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "done" ? "core-done" : ""}`}>
@@ -389,7 +398,7 @@ export default function App() {
       })}</section>
       <section className={`bonus-card ${expandedBonus ? "bonus-open" : ""}`}>
         <button className="bonus-toggle" onClick={() => {setExpandedBonus(v => !v);}}><div><div className="eyebrow">OPTIONAL BONUS ROUND</div><strong>Superset 4 · Feeling saucy?</strong><small>Extra credit. Not required to finish.</small></div><span>{expandedBonus ? <ChevronUp/> : <ChevronDown/>}</span></button>
-        {expandedBonus && (() => { const bonusIndex = (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3]; return <div className="bonus-content">{activeWorkout.pairs[bonusIndex].map(([name,detail],ei) => <div className="exercise-row" key={name}><button className={`exercise-check ${payload.done?.[exerciseKey(workoutId,bonusIndex,ei)] ? "checked" : ""}`} onClick={() => toggleExercise(bonusIndex,ei)}>{payload.done?.[exerciseKey(workoutId,bonusIndex,ei)] && <Check size={13}/>}</button><div className="exercise-name"><strong>{name}</strong><small>{detail}</small><ExerciseGuide name={name}/></div><label className="weight-input"><input inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span></label></div>)}<button className="pair-check bonus-done" onClick={() => togglePair(bonusIndex)}>Mark bonus complete</button></div>; })()}
+        {expandedBonus && (() => { const bonusIndex = (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3]; return <div className="bonus-content">{activeWorkout.pairs[bonusIndex].map(([name,detail],ei) => <div className="exercise-row" key={name}><button className={`exercise-check ${payload.done?.[exerciseKey(workoutId,bonusIndex,ei)] ? "checked" : ""}`} onClick={() => toggleExercise(bonusIndex,ei)}>{payload.done?.[exerciseKey(workoutId,bonusIndex,ei)] && <Check size={13}/>}</button><div className="exercise-name"><strong>{name}</strong><small>{detail}</small><ExerciseGuide name={name}/></div><label className="weight-input"><input inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} lb</small>}</label></div>)}<button className="pair-check bonus-done" onClick={() => togglePair(bonusIndex)}>Mark bonus complete</button></div>; })()}
       </section>
       {rest > 0 && <div className="rest-overlay"><div><div className="eyebrow">REST TIMER</div><strong>{Math.floor(rest/60)}:{String(rest%60).padStart(2,"0")}</strong><button onClick={() => setRest(0)}>Skip rest</button></div></div>}
       <button className="primary-button complete-button" onClick={completeWorkout}> <Check size={18}/> Complete workout</button>
