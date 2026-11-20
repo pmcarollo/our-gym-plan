@@ -249,11 +249,12 @@ export default function App() {
     save({ ...payload, done });
   }
 
-  function toggleCore(coreName) {
-    const done = { ...(payload.coreDone || {}) };
-    const key = `${workoutId}-${coreName}`;
-    done[key] = !done[key];
-    save({ ...payload, coreDone: done });
+  function setCoreStatus(coreName, status) {
+    const coreStatus = { ...(payload.coreStatus || {}) };
+    const key = `${startedAt}-${coreName}`;
+    if (coreStatus[key] === status) delete coreStatus[key];
+    else coreStatus[key] = status;
+    save({ ...payload, coreStatus });
   }
 
   function togglePair(pairIndex) {
@@ -273,6 +274,10 @@ export default function App() {
       id: crypto.randomUUID(), workoutId, week, profile: person,
       startedAt: startedAt || completedAt, completedAt, workoutDate,
       bonusDone: Boolean(payload.done?.[exerciseKey(workoutId, (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], 0)] || payload.done?.[exerciseKey(workoutId, (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], 1)]),
+      coreSnapshot: (payload.coreOrder?.['w' + week + '-' + workoutId] || [0,1,2,3,4,5,6,7]).slice(0,3).map((coreIndex, displayIndex) => {
+        const [name, prescription] = CORE_BREAKS[coreIndex];
+        return { afterSuperset: displayIndex + 1, name, prescription, status: payload.coreStatus?.[`${startedAt}-${name}`] || "not recorded" };
+      }),
       exerciseSnapshot: activeWorkout.pairs.map((pair, pairIndex) => pair.map(([name, detail], exerciseIndex) => ({ name, detail, weight: payload.weights?.[name] || "", completed: Boolean(payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]) })))
     }];
     save({ ...payload, sessions });
@@ -329,6 +334,7 @@ export default function App() {
       <section className="greeting"><div><div className="eyebrow">LET'S GET AFTER IT</div><h2>Morning, {person}.</h2><p>Week {week} · {easternTime} Eastern</p></div><div className="week-mark"><span>WEEK</span><strong>{String(week).padStart(2,"0")}</strong></div></section>
       <section className="progress-card"><div className="progress-copy"><div className="eyebrow">THIS WEEK</div><strong>{completedThisWeek} of 4 workouts complete</strong><span>{completedThisWeek === 4 ? "That's a wrap. Nice work." : "Keep the rotation rolling."}</span><div className="progress-track"><i style={{width:`${completedThisWeek/4*100}%`}}/></div></div><div className="progress-icon"><Trophy size={21}/></div></section>
       <div className="section-heading"><div><div className="eyebrow">THE ROTATION</div><h3>Your workouts</h3></div><span className="muted-label">A – D</span></div>
+      <button className="history-link" onClick={() => setScreen("history")}>View workout history <span>↗</span></button>
       {startedAt && workoutId && <button className="resume-workout" onClick={() => setScreen("workout")}><span><strong>Resume {PROGRAM.find(w => w.id === workoutId)?.name || "workout"}</strong><small>In-progress workout · saved on this device</small></span><span>↗</span></button>}
       <section className="workout-list">{orderedWorkouts.map(w => {
         const done = payload.sessions.find(s => s.workoutId === w.id && s.week === week);
@@ -339,6 +345,21 @@ export default function App() {
       <button className="text-button" onClick={nextWeek}><RotateCcw size={14}/> Start week {week+1} · reset checkmarks & shuffle order</button>
       <div className="footer-note"><Clock3 size={14}/> Workout cutoff · 6:50 AM Eastern</div>
       {busy && <p className="muted-label">Syncing…</p>}
+    </> : screen === "history" ? <>
+      <button className="back-button" onClick={() => setScreen("home")}>← Back to workouts</button>
+      <section className="greeting"><div><div className="eyebrow">YOUR TRAINING LOG</div><h2>Workout history</h2><p>{payload.sessions?.length || 0} completed workouts</p></div></section>
+      <section className="history-list">
+        {[...(payload.sessions || [])].sort((a,b) => new Date(b.completedAt) - new Date(a.completedAt)).map(session => {
+          const workout = PROGRAM.find(w => w.id === session.workoutId);
+          return <article className="history-card" key={session.id}>
+            <div className="history-card-head"><div><span className="eyebrow">WEEK {session.week || "—"}</span><h3>{workout?.name || `Workout ${session.workoutId}`}</h3></div><time>{session.completedAt ? new Date(session.completedAt).toLocaleDateString([], {month:"short",day:"numeric",year:"numeric"}) : "Date unavailable"}</time></div>
+            <p className="history-time">{session.completedAt ? new Date(session.completedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : ""}</p>
+            {session.coreSnapshot?.length ? <div className="history-core"><strong>Optional core</strong>{session.coreSnapshot.map(item => <div className="history-core-row" key={item.afterSuperset + item.name}><span>After superset {item.afterSuperset}: {item.name}</span><span className={item.status === "done" ? "history-done" : ""}>{item.status === "done" ? "Done" : item.status === "skipped" ? "Skipped" : "Not recorded"}</span></div>)}</div> : <p className="history-legacy">Core activity wasn't recorded for this workout.</p>}
+            {session.exerciseSnapshot?.length ? <details className="history-exercises"><summary>View exercise log</summary>{session.exerciseSnapshot.flat().map(item => <div className="history-exercise-row" key={item.name}><span>{item.name}{item.weight ? ` · ${item.weight} lb` : ""}</span><span>{item.completed ? "Done" : "Not checked"}</span></div>)}</details> : null}
+          </article>;
+        })}
+        {!payload.sessions?.length && <p className="history-empty">Your completed workouts will show up here.</p>}
+      </section>
     </> : activeWorkout && <>
       <button className="back-button" onClick={() => setScreen("home")}>← All workouts</button>
       <section className="greeting workout-heading"><div><div className="eyebrow">WORKOUT {activeWorkout.id} · WEEK {week}</div><h2>{activeWorkout.name}</h2><p>{activeWorkout.focus}</p></div></section>
@@ -350,14 +371,13 @@ export default function App() {
         const complete = pair.every((_, ei) => payload.done?.[exerciseKey(workoutId,index,ei)]);
         const coreIndex = (payload.coreOrder?.['w' + week + '-' + workoutId] || [0,1,2,3,4,5,6,7])[displayIndex];
         const core = CORE_BREAKS[coreIndex];
-        const coreDone = Boolean(payload.coreDone?.[`${workoutId}-${core[0]}`]);
         return <div className="superset-and-core" key={index}>
         <article className={`superset-card ${complete ? "pair-complete" : ""}`}>
           <header><div><span className="eyebrow">SUPERSET {displayIndex+1}</span></div><button className={`pair-check ${complete ? "checked" : ""}`} onClick={() => togglePair(index)}>{complete ? <Check size={17}/> : "Done"}</button></header>
           {pair.map(([name,detail],ei) => <div className="exercise-row" key={name}><button className={`exercise-check ${payload.done?.[exerciseKey(workoutId,index,ei)] ? "checked" : ""}`} onClick={() => toggleExercise(index,ei)}>{payload.done?.[exerciseKey(workoutId,index,ei)] && <Check size={13}/>}</button><div className="exercise-name"><strong>{name}</strong><small>{detail}</small><ExerciseGuide name={name}/></div><label className="weight-input"><input inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span></label></div>)}
           <button className="rest-button" onClick={() => setRest(60)}><Timer size={14}/> Rest 60 sec</button>
         </article>
-        <div className={`core-break ${coreDone ? "core-done" : ""}`}>
+        <div className={`core-break ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "done" ? "core-done" : ""}`}>
           <div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE BREAK</span><strong>{core[0]}</strong><small>{core[1]} · {core[2]}</small></div>
           <button className={`core-check ${coreDone ? "checked" : ""}`} onClick={() => toggleCore(core[0])}>{coreDone ? <Check size={15}/> : "Skip / Done"}</button>
           <ExerciseGuide name={core[0]}/>
