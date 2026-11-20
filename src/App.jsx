@@ -62,6 +62,7 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [now, setNow] = useState(new Date());
   const [startedAt, setStartedAt] = useState(null);
+  const [workoutDate, setWorkoutDate] = useState(todayKey());
   const [rest, setRest] = useState(0);
   const [expandedBonus, setExpandedBonus] = useState(false);
 
@@ -142,6 +143,7 @@ export default function App() {
 
   function startWorkout(id) {
     setWorkoutId(id);
+    setWorkoutDate(todayKey());
     setStartedAt(new Date().toISOString());
     setExpandedBonus(false);
     setNotice("");
@@ -167,9 +169,13 @@ export default function App() {
   }
 
   function completeWorkout() {
+    // Keep the actual completion time, but use the selected local calendar date.
+    const currentTime = new Date();
+    const [year, month, day] = workoutDate.split("-").map(Number);
+    const completedAt = new Date(year, month - 1, day, currentTime.getHours(), currentTime.getMinutes(), currentTime.getSeconds()).toISOString();
     const sessions = [...(payload.sessions || []), {
       id: crypto.randomUUID(), workoutId, week, profile: person,
-      startedAt: startedAt || new Date().toISOString(), completedAt: new Date().toISOString(),
+      startedAt: startedAt || completedAt, completedAt, workoutDate,
       bonusDone: Boolean(payload.done?.[exerciseKey(workoutId, (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], 0)] || payload.done?.[exerciseKey(workoutId, (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], 1)]),
       exerciseSnapshot: activeWorkout.pairs.map((pair, pairIndex) => pair.map(([name, detail], exerciseIndex) => ({ name, detail, weight: payload.weights?.[name] || "", completed: Boolean(payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]) })))
     }];
@@ -235,7 +241,7 @@ export default function App() {
       <button className="back-button" onClick={() => {setScreen("home");setStartedAt(null);}}>← All workouts</button>
       <section className="greeting workout-heading"><div><div className="eyebrow">WORKOUT {activeWorkout.id} · WEEK {week}</div><h2>{activeWorkout.name}</h2><p>{activeWorkout.focus}</p></div></section>
       {notice && <div className="warning-banner"><Clock3 size={18}/><span>{notice}</span><button onClick={() => setNotice("")}>×</button></div>}
-      <div className="workout-controls"><span className="muted-label">3 required supersets · 1 optional bonus</span><span className="muted-label">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
+      <div className="workout-controls"><span className="muted-label">3 required supersets · 1 optional bonus</span><label className="workout-date-label">Workout date<input aria-label="Workout date" type="date" value={workoutDate} max={todayKey()} onChange={e => setWorkoutDate(e.target.value)} /></label><span className="muted-label">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
       <section className="superset-list">{(payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3]).slice(0,3).map((pairIndex,displayIndex) => {
         const pair = activeWorkout.pairs[pairIndex];
         const index = pairIndex;
