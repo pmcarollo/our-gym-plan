@@ -75,3 +75,6 @@
 .history-exercises{margin-top:11px;font-size:10px}
 .history-exercises summary{color:var(--green);font-weight:700;cursor:pointer}
 .history-exercise-row{padding:7px 0;border-bottom:1px solid #eff0e9}
+
+
+.last-used-weight { grid-column: 1 / -1; color: #7b847b; font-size: 10px; line-height: 1.2; text-align: right; white-space: nowrap; }
