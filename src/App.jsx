@@ -525,13 +525,13 @@ export default function App() {
       {startedAt && workoutId && <div className="resume-workout-wrap"><button className="resume-workout" onClick={() => setScreen("workout")}><span><strong>Resume {activeWorkout?.name || "workout"}</strong><small>In-progress workout · saved on this device</small></span><span>↗</span></button><button className="discard-workout" onClick={discardWorkout}>Discard workout</button></div>}
       <section className="workout-list">{orderedWorkouts.map(w => {
         const done = payload.sessions.find(s => s.workoutId === w.id && s.week === week);
-        return <button className={`workout-card ${done ? "is-complete" : ""}`} key={w.id} onClick={() => startWorkout(w.id)}>
+        return <button className={`workout-card ${done ? "is-complete" : ""}`} key={w.id} disabled={Boolean(startedAt)} onClick={() => startWorkout(w.id)}>
           <span className="workout-letter">{done ? <Check size={20}/> : w.id}</span><span className="workout-info"><strong>{w.name}</strong><small>{done ? `Completed · ${new Date(done.completedAt).toLocaleDateString()}` : w.focus}</small></span><span className="workout-arrow">{done ? "✓" : "↗"}</span>
         </button>;
       })}</section>
       <div className="wild-card-section">
         <div className="wild-card-heading"><div><div className="eyebrow">WHEN YOU WANT SOMETHING DIFFERENT</div><strong>Wild Card</strong><small>Fresh push, pull, legs and finisher combinations, drawn from a separate exercise pool.</small></div><span className="wild-card-spark">✦</span></div>
-        <button className={`wild-card-button ${wildCardCompleted ? "is-complete" : ""}`} onClick={startWildCardWorkout}><span>{wildCardCompleted ? "Generate another Wild Card" : "Generate a Wild Card workout"}</span><span>↗</span></button>
+        <button className={`wild-card-button ${wildCardCompleted ? "is-complete" : ""}`} disabled={Boolean(startedAt)} onClick={startWildCardWorkout}><span>{wildCardCompleted ? "Generate another Wild Card" : "Generate a Wild Card workout"}</span><span>↗</span></button>
         <p className="wild-card-note">Optional fifth session · doesn't count toward your four-workout weekly goal</p>
       </div>
       <div className="week-navigation">
