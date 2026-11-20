@@ -307,6 +307,15 @@ export default function App() {
     save({ ...payload, week: nextWeek, supersetOrder, coreOrder, done: {}, coreDone: {} });
   }
 
+  function deleteWorkout(sessionId) {
+    const session = (payload.sessions || []).find(item => item.id === sessionId);
+    if (!session) return;
+    const label = PROGRAM.find(item => item.id === session.workoutId)?.name || "this workout";
+    if (!window.confirm(`Delete ${label} from your workout history? This cannot be undone.`)) return;
+    const sessions = (payload.sessions || []).filter(item => item.id !== sessionId);
+    save({ ...payload, sessions });
+  }
+
   function updateWeight(name, value) {
     const weights = { ...(payload.weights || {}), [name]: value };
     save({ ...payload, weights });
@@ -374,6 +383,7 @@ export default function App() {
             <p className="history-time">{session.completedAt ? new Date(session.completedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : ""}</p>
             {session.coreSnapshot?.length ? <div className="history-core"><strong>Optional core</strong>{session.coreSnapshot.map(item => <div className="history-core-row" key={item.afterSuperset + item.name}><span>After superset {item.afterSuperset}: {item.name}</span><span className={item.status === "done" ? "history-done" : ""}>{item.status === "done" ? "Done" : item.status === "skipped" ? "Skipped" : "Not recorded"}</span></div>)}</div> : <p className="history-legacy">Core activity wasn't recorded for this workout.</p>}
             {session.exerciseSnapshot?.length ? <details className="history-exercises"><summary>View exercise log</summary>{session.exerciseSnapshot.flat().map(item => <div className="history-exercise-row" key={item.name}><span>{item.name}{item.weight ? ` · ${item.weight} lb` : ""}</span><span>{item.completed ? "Done" : "Not checked"}</span></div>)}</details> : null}
+            <button className="history-delete" onClick={() => deleteWorkout(session.id)}>Delete workout</button>
           </article>;
         })}
         {!payload.sessions?.length && <p className="history-empty">Your completed workouts will show up here.</p>}
