@@ -367,6 +367,11 @@ export default function App() {
 
   function startWildCardWorkout() {
     const generated = generateWildCard(person);
+    const coreOrderKey = 'w' + week + '-E';
+    const coreOrder = { ...(payload.coreOrder || {}), [coreOrderKey]: CORE_BREAKS.map((_, i) => i).sort(() => Math.random() - .5) };
+    const done = { ...(payload.done || {}) };
+    Object.keys(done).filter(key => key.startsWith("E-p")).forEach(key => delete done[key]);
+    save({ ...payload, coreOrder, done });
     setWildCardWorkout(generated);
     setWorkoutId("E");
     setWorkoutDate(todayKey());
