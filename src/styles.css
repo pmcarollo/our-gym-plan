@@ -401,3 +401,210 @@ h1 { font-family: Inter,ui-sans-serif,system-ui,sans-serif; font-weight: 850; le
     padding-inline: 10px;
   }
 }
+
+
+/* Align exercise names, weight fields and expandable form guides as one unit. */
+.exercise-row {
+  grid-template-columns: minmax(0,1fr) 104px;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 10px;
+}
+.exercise-name {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+}
+.weight-input {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  width: 104px;
+  min-height: 50px;
+  background: #fff;
+  border: 1px solid #dfe4da;
+  border-radius: 12px;
+}
+.exercise-guide {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  margin: 0;
+  border: 1px solid #e1e7dc;
+  border-radius: 11px;
+  background: #f7f9f3;
+  overflow: hidden;
+}
+.exercise-guide summary {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 11px;
+  color: #426b51;
+}
+.exercise-guide[open] {
+  padding-bottom: 10px;
+}
+.exercise-guide[open] summary {
+  border-bottom: 1px solid #e6ebe2;
+}
+.exercise-guide p,
+.exercise-guide strong,
+.exercise-guide ul,
+.exercise-guide a {
+  margin-left: 11px;
+  margin-right: 11px;
+}
+.exercise-guide p:first-of-type {
+  margin-top: 10px;
+}
+.weight-input input {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+}
+.weight-input .last-used-weight {
+  flex-basis: 100%;
+}
+@media(max-width:420px) {
+  .exercise-row {
+    grid-template-columns: minmax(0,1fr) 90px;
+    column-gap: 10px;
+  }
+  .weight-input {
+    width: 90px;
+    min-height: 48px;
+  }
+  .exercise-guide summary {
+    min-height: 44px;
+    font-size: 12px;
+  }
+}
+
+/* Workout history: compact session cards with weights tucked away until needed. */
+.history-card {
+  padding: 17px;
+  border: 1px solid #dce3d8;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(23,59,45,.045);
+}
+.history-card-head {
+  align-items: center;
+}
+.history-title-group {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.history-workout-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #e8efe3;
+  color: #234c3c;
+  font-size: 17px;
+  font-weight: 850;
+}
+.history-title-group h3 {
+  margin: 3px 0 0;
+  font-family: Inter,ui-sans-serif,system-ui,sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
+.history-card-head time {
+  flex: 0 0 auto;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #f2f5ee;
+  color: #526b58;
+  font-size: 11px;
+  font-weight: 700;
+}
+.history-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 14px 0 12px 53px;
+}
+.history-meta span {
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: #f3f5ef;
+  color: #637267;
+  font-size: 10px;
+  font-weight: 700;
+}
+.history-weights {
+  margin: 0 0 0 53px;
+  padding: 0;
+  border: 0;
+}
+.history-weights summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 0;
+  border-top: 1px solid #edf0e9;
+  color: #315d42;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  list-style: none;
+}
+.history-weights summary::-webkit-details-marker {
+  display: none;
+}
+.history-weights summary span:last-child {
+  color: #7a897c;
+  font-size: 11px;
+  font-weight: 600;
+}
+.history-weights[open] .history-exercise-row {
+  padding: 9px 0;
+  border-bottom: 1px solid #eff1eb;
+  font-size: 12px;
+}
+.history-weights[open] .history-exercise-row strong {
+  color: #234c3c;
+}
+.history-weights .history-no-weights {
+  margin: 0 0 10px;
+  font-size: 11px;
+}
+.history-delete {
+  margin: 10px 0 0 53px;
+  padding: 8px 0;
+  font-size: 11px;
+}
+@media(max-width:420px) {
+  .history-card-head {
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .history-workout-mark {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+  }
+  .history-title-group {
+    gap: 9px;
+  }
+  .history-title-group h3 {
+    font-size: 15px;
+  }
+  .history-card-head time {
+    font-size: 10px;
+    padding: 5px 6px;
+  }
+  .history-meta,.history-weights,.history-delete {
+    margin-left: 47px;
+  }
+}
