@@ -30,8 +30,8 @@ const PROGRAM = [
   { id: "D", name: "Full Body + Core", focus: "Strength · Stability · Core", pairs: [
     [["DB step-up", "4 sets · 10 each"], ["Incline push-up", "4 sets · 10 reps"]],
     [["DB deadlift", "4 sets · 10 reps"], ["Dead bug", "4 sets · 10 each"]],
-    [["Pallof press", "4 sets · 10 each"], ["Front plank", "4 sets · 10 reps"]],
-    [["Farmer carry", "Bonus · 4 sets · 10 reps"], ["Cable wood chop", "Bonus · 4 sets · 10 reps"]]
+    [["Pallof press", "4 sets · 10 each"], ["Front plank", "4 sets · 20–30 sec"]],
+    [["Farmer carry", "Bonus · 4 carries · 30–40 yd or 30–45 sec"], ["Cable wood chop", "Bonus · 4 sets · 10 reps"]]
   ]}
 ];
 
@@ -221,6 +221,10 @@ export default function App() {
     ? (payload.supersetOrder?.['w' + (payload.week || 1) + '-' + workoutId] || [0, 1, 2, 3]).slice(0, 3)
     : [];
   const totalRequiredExercises = activePairOrder.length * 2;
+  const bonusPairIndex = (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3];
+  const completedBonusExercises = activeWorkout
+    ? activeWorkout.pairs[bonusPairIndex].filter((_, ei) => payload.done?.[exerciseKey(workoutId, bonusPairIndex, ei)]).length
+    : 0;
   const completedRequiredExercises = activeWorkout
     ? activePairOrder.reduce((count, pairIndex) => count + activeWorkout.pairs[pairIndex].filter((_, exerciseIndex) => payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]).length, 0)
     : 0;
@@ -605,7 +609,7 @@ export default function App() {
       <section className="live-progress-card" aria-label="Workout progress">
         <div className="live-progress-top"><div><span className="eyebrow">YOUR PROGRESS</span><strong>{completedRequiredExercises} <span>/ {totalRequiredExercises}</span></strong></div><span className="live-progress-status">{completedRequiredExercises === totalRequiredExercises ? "Required work complete" : completedRequiredExercises === 0 ? "Ready when you are" : "Keep it moving"}</span></div>
         <div className="live-progress-track"><i style={{ width: `${totalRequiredExercises ? completedRequiredExercises / totalRequiredExercises * 100 : 0}%` }} /></div>
-        <div className="live-progress-bottom"><span>{Math.round(totalRequiredExercises ? completedRequiredExercises / totalRequiredExercises * 100 : 0)}% complete</span><span>3 supersets · bonus optional</span></div>
+        <div className="live-progress-bottom"><span>{Math.round(totalRequiredExercises ? completedRequiredExercises / totalRequiredExercises * 100 : 0)}% required work</span><span>Bonus: {completedBonusExercises}/2</span></div>
       </section>
       <div className="workout-controls"><span className="muted-label workout-requirement">3 required supersets · 1 optional bonus</span><div className="workout-datetime"><label className="workout-date-label">Workout date<input aria-label="Workout date" type="date" value={workoutDate} max={todayKey()} onChange={e => setWorkoutDate(e.target.value)} /></label><div className="finish-time-field"><span className="muted-label">Finish time</span><strong className="live-finish-time">{easternTime} Eastern</strong></div></div><span className="muted-label workout-started">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
       <section className="superset-list">{(payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3]).slice(0,3).map((pairIndex,displayIndex) => {
@@ -632,7 +636,7 @@ export default function App() {
       })}</section>
       <section className={`bonus-card ${expandedBonus ? "bonus-open" : ""}`}>
         <button className="bonus-toggle" onClick={() => {setExpandedBonus(v => !v);}}><div><div className="eyebrow">OPTIONAL BONUS ROUND</div><strong>Superset 4 · Feeling saucy?</strong><small>Extra credit. Not required to finish.</small></div><span>{expandedBonus ? <ChevronUp/> : <ChevronDown/>}</span></button>
-        {expandedBonus && (() => { const bonusIndex = (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3]; const bonusComplete = activeWorkout.pairs[bonusIndex].every((_,ei) => payload.done?.[exerciseKey(workoutId,bonusIndex,ei)]); return <div className="bonus-content">{activeWorkout.pairs[bonusIndex].map(([name,detail]) => <div className="exercise-row" key={name}><div className="exercise-name"><strong>{name}</strong><small>{detail}</small></div><label className="weight-input"><input aria-label={name + " weight in pounds"} inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} lb</small>}</label><ExerciseGuide name={name}/></div>)}<button className={`pair-check bonus-done ${bonusComplete ? "checked" : ""}`} onClick={() => togglePair(bonusIndex)}>{bonusComplete ? "Bonus complete · Undo" : "Mark bonus complete"}</button></div>; })()}
+        {expandedBonus && (() => { const bonusIndex = bonusPairIndex; const bonusComplete = activeWorkout.pairs[bonusIndex].every((_,ei) => payload.done?.[exerciseKey(workoutId,bonusIndex,ei)]); return <div className="bonus-content">{activeWorkout.pairs[bonusIndex].map(([name,detail]) => <div className="exercise-row" key={name}><div className="exercise-name"><strong>{name}</strong><small>{detail}</small></div><label className="weight-input"><input aria-label={name + " weight in pounds"} inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} lb</small>}</label><ExerciseGuide name={name}/></div>)}<button className={`pair-check bonus-done ${bonusComplete ? "checked" : ""}`} onClick={() => togglePair(bonusIndex)}>{bonusComplete ? "Bonus complete · Undo" : "Mark bonus complete"}</button></div>; })()}
       </section>
       {rest > 0 && <div className="rest-overlay"><div><div className="eyebrow">REST TIMER</div><strong>{Math.floor(rest/60)}:{String(rest%60).padStart(2,"0")}</strong><button onClick={() => setRest(0)}>Skip rest</button></div></div>}
       <button className="primary-button complete-button" onClick={completeWorkout}> <Check size={18}/> Complete workout</button>
