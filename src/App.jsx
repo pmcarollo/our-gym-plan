@@ -57,27 +57,44 @@ const WILD_CARD_POOLS = {
   legs: [["DB split squat","3 sets · 8 each"],["Lateral lunge","3 sets · 8 each"],["Single-leg DB Romanian deadlift","3 sets · 8 each"],["Smith machine squat","3 sets · 10 reps"]],
   finisher: [["Rower sprint","4 rounds · 30 sec"],["Bike sprint","4 rounds · 30 sec"],["Incline treadmill walk","4 rounds · 1 min"],["Elliptical intervals","4 rounds · 1 min"]]
 };
-function generateWildCard(profile) {
-  const shuffle = items => [...items].sort(() => Math.random() - 0.5);
-  const storageKey = `our-gym-plan-wildcard-history-${profile}`;
-  let recent = [];
-  try { const parsed = JSON.parse(localStorage.getItem(storageKey) || "[]"); recent = Array.isArray(parsed) ? parsed : []; } catch { recent = []; }
-  let selected;
-  for (let attempt = 0; attempt < 60; attempt++) {
-    const push = shuffle(WILD_CARD_POOLS.push).slice(0,2), pull = shuffle(WILD_CARD_POOLS.pull).slice(0,2);
-    const legs = shuffle(WILD_CARD_POOLS.legs).slice(0,2), finisher = shuffle(WILD_CARD_POOLS.finisher).slice(0,2);
-    const pairs = [...shuffle([[push[0],pull[0]],[legs[0],finisher[0]],[push[1],pull[1]]]),[legs[1],finisher[1]]];
-    const comboKey = pairs.flat().map(item => item[0]).sort().join("|");
-    if (!recent.includes(comboKey)) { selected = {id:"E",name:"Wild Card",focus:"Push · Pull · Legs · Finisher",pairs,comboKey}; break; }
+function seededRandom(seedText) {
+  let seed = 2166136261;
+  for (let i = 0; i < seedText.length; i++) {
+    seed ^= seedText.charCodeAt(i);
+    seed = Math.imul(seed, 16777619);
   }
-  if (!selected) {
-    const push=shuffle(WILD_CARD_POOLS.push).slice(0,2), pull=shuffle(WILD_CARD_POOLS.pull).slice(0,2);
-    const legs=shuffle(WILD_CARD_POOLS.legs).slice(0,2), finisher=shuffle(WILD_CARD_POOLS.finisher).slice(0,2);
-    const pairs=[...shuffle([[push[0],pull[0]],[legs[0],finisher[0]],[push[1],pull[1]]]),[legs[1],finisher[1]]];
-    selected={id:"E",name:"Wild Card",focus:"Push · Pull · Legs · Finisher",pairs,comboKey:pairs.flat().map(item=>item[0]).sort().join("|")};
+  return () => {
+    seed += 0x6D2B79F5;
+    let t = seed;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function seededShuffle(items, seedText) {
+  const random = seededRandom(seedText);
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
   }
-  localStorage.setItem(storageKey,JSON.stringify([selected.comboKey,...recent.filter(key=>key!==selected.comboKey)].slice(0,12)));
-  return selected;
+  return result;
+}
+function generateWildCard(week) {
+  // One deterministic Wild Card per plan week, shared by Paul and Chris
+  // across profiles and devices. Weights and completion remain profile-specific.
+  const seed = "our-gym-plan-wildcard-v1-week-" + week;
+  const push = seededShuffle(WILD_CARD_POOLS.push, seed + "-push").slice(0,2);
+  const pull = seededShuffle(WILD_CARD_POOLS.pull, seed + "-pull").slice(0,2);
+  const legs = seededShuffle(WILD_CARD_POOLS.legs, seed + "-legs").slice(0,2);
+  const finisher = seededShuffle(WILD_CARD_POOLS.finisher, seed + "-finisher").slice(0,2);
+  const pairs = [
+    ...seededShuffle([[push[0],pull[0]],[legs[0],finisher[0]],[push[1],pull[1]]], seed + "-pair-order"),
+    [legs[1],finisher[1]]
+  ];
+  const comboKey = pairs.flat().map(item => item[0]).sort().join("|");
+  const coreOrder = seededShuffle(CORE_BREAKS.map((_, i) => i), seed + "-core").slice(0,2);
+  return {id:"E",name:"Wild Card",focus:"Push · Pull · Legs · Finisher",pairs,comboKey,coreOrder};
 }
 
 const EXERCISE_GUIDES = {
@@ -200,7 +217,7 @@ export default function App() {
     ? activePairOrder.reduce((count, pairIndex) => count + activeWorkout.pairs[pairIndex].filter((_, exerciseIndex) => payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]).length, 0)
     : 0;
   const week = payload.week || 1;
-  const completedThisWeek = useMemo(() => PROGRAM.filter(w => payload.sessions.some(s => s.workoutId === w.id && s.week === week && s.completedAt)).length, [payload, week]);
+  const completedThisWeek = useMemo(() => Math.min(4, new Set((payload.sessions || []).filter(s => s.week === week && s.completedAt).map(s => s.workoutId)).size), [payload, week]);
 
   useEffect(() => {
     const refreshClock = () => setNow(new Date());
@@ -376,9 +393,9 @@ export default function App() {
   }
 
   function startWildCardWorkout() {
-    const generated = generateWildCard(person);
+    const generated = generateWildCard(week);
     const coreOrderKey = 'w' + week + '-E';
-    const coreOrder = { ...(payload.coreOrder || {}), [coreOrderKey]: CORE_BREAKS.map((_, i) => i).sort(() => Math.random() - .5) };
+    const coreOrder = { ...(payload.coreOrder || {}), [coreOrderKey]: generated.coreOrder };
     const done = { ...(payload.done || {}) };
     Object.keys(done).filter(key => key.startsWith("E-p")).forEach(key => delete done[key]);
     save({ ...payload, coreOrder, done });
@@ -532,7 +549,7 @@ export default function App() {
       <div className="wild-card-section">
         <div className="wild-card-heading"><div><div className="eyebrow">WHEN YOU WANT SOMETHING DIFFERENT</div><strong>Wild Card</strong><small>Fresh push, pull, legs and finisher combinations, drawn from a separate exercise pool.</small></div><span className="wild-card-spark">✦</span></div>
         <button className={`wild-card-button ${wildCardCompleted ? "is-complete" : ""}`} disabled={Boolean(startedAt)} onClick={startWildCardWorkout}><span>{wildCardCompleted ? "Generate another Wild Card" : "Generate a Wild Card workout"}</span><span>↗</span></button>
-        <p className="wild-card-note">Optional fifth session · doesn't count toward your four-workout weekly goal</p>
+        <p className="wild-card-note">Shared weekly workout for Paul + Chris · counts toward your four-workout goal</p>
       </div>
       <div className="week-navigation">
         <button className="previous-week-button" onClick={previousWeek} disabled={week <= 1}>← Previous week</button>
