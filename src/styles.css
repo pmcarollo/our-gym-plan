@@ -190,3 +190,65 @@ button, .workout-card, .profile-button { -webkit-tap-highlight-color: transparen
 .wild-card-note{margin:9px 0 0;color:var(--muted);font-size:10px;line-height:1.4}
 
 .workout-card:disabled,.wild-card-button:disabled{opacity:.55;cursor:not-allowed}
+
+
+/* Athletic refresh: stronger hierarchy, contrast and thumb-friendly controls. */
+:root { --gym-touch: 50px; --sport-lime: #d7ef78; --sport-ink: #173b2d; }
+body { background: #f2f3ec; }
+.app-shell { width: min(100% - 30px, 590px); }
+.topbar { padding: 12px 0 20px; border-bottom: 2px solid rgba(35,76,60,.14); }
+.brand-mark { width: 46px; height: 46px; border-radius: 13px; box-shadow: 0 4px 0 rgba(23,59,45,.16); }
+h1 { font-family: Inter,ui-sans-serif,system-ui,sans-serif; font-weight: 850; letter-spacing: -.055em; text-transform: uppercase; }
+.greeting { padding: 28px 0 20px; }
+.greeting .eyebrow,.section-heading .eyebrow { color: #64806b; font-size: 11px; letter-spacing: .16em; }
+.greeting h2 { font-family: Inter,ui-sans-serif,system-ui,sans-serif; font-size: clamp(30px,8vw,38px); font-weight: 850; letter-spacing: -.06em; }
+.greeting p { font-size: 14px; }
+.week-mark strong { font-family: Inter,ui-sans-serif,system-ui,sans-serif; font-weight: 850; }
+.progress-card { position: relative; gap: 16px; min-height: 148px; padding: 20px; border: 1px solid #315d48; border-radius: 19px; background: linear-gradient(135deg,#173b2d 0%,#285a40 100%); box-shadow: 0 8px 18px rgba(23,59,45,.14); }
+.progress-copy { gap: 7px; }
+.progress-copy .eyebrow { color: #c7dbb7; letter-spacing: .17em; }
+.progress-copy strong { font-family: Inter,ui-sans-serif,system-ui,sans-serif; font-size: clamp(18px,5vw,22px); font-weight: 850; letter-spacing: -.035em; }
+.progress-copy > span { font-size: 12px; }
+.progress-track { width: 100%; max-width: 100%; height: 10px; margin-top: 5px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.16); }
+.progress-track i { background: var(--sport-lime); }
+.progress-meta { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#d0dfd0; font-size:10px; font-weight:800; letter-spacing:.12em; }
+.progress-meta .extra-credit { padding:5px 8px; border-radius:6px; background:var(--sport-lime); color:#193d2d; font-size:10px; letter-spacing:.08em; }
+.progress-icon { width:48px; height:48px; flex:0 0 48px; border:1px solid rgba(215,239,120,.5); background:rgba(215,239,120,.12); color:var(--sport-lime); }
+.progress-card.goal-reached .progress-track i { background:var(--sport-lime); }
+.section-heading { margin-top:32px; }
+.section-heading h3 { font-family:Inter,ui-sans-serif,system-ui,sans-serif; font-size:25px; font-weight:850; letter-spacing:-.045em; }
+.workout-list { gap:11px; }
+.workout-card { min-height:78px; padding:16px; border:1px solid #d9dfd4; border-left:4px solid #9eaf9b; border-radius:14px; background:#fff; box-shadow:0 2px 5px rgba(23,59,45,.035); transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease; }
+.workout-card:active { transform:scale(.985); }
+.workout-card.is-complete { border-left-color:#5b914f; background:#edf4e9; }
+.workout-letter { width:44px; height:44px; border-radius:12px; background:#e7eee2; color:#234c3c; font-family:Inter,ui-sans-serif,system-ui,sans-serif; font-size:20px; font-weight:850; }
+.workout-info strong { font-size:16px; font-weight:800; letter-spacing:-.02em; }
+.workout-info small { font-size:12px; }
+.wild-card-section { padding:18px; border:1px solid #d2dccb; border-radius:17px; background:linear-gradient(145deg,#e8eee1,#f8f9f3); }
+.wild-card-heading strong { font-family:Inter,ui-sans-serif,system-ui,sans-serif; font-size:23px; font-weight:850; letter-spacing:-.04em; }
+.wild-card-button { min-height:54px; border:1px solid #315d48; border-radius:12px; background:#234c3c; color:#fff; font-size:14px; font-weight:800; }
+.wild-card-note { font-size:11px; line-height:1.5; }
+.exercise-row { gap:13px; padding:16px 0; }
+.exercise-check { width:44px; height:44px; min-width:44px; border-radius:12px; border-width:2px; }
+.exercise-name strong { font-size:15px; font-weight:750; }
+.exercise-name small { font-size:12px; }
+.weight-input { min-height:48px; padding:8px 10px; border-radius:10px; }
+.weight-input input { min-height:36px; font-size:18px; }
+.pair-check,.core-action,.rest-button,.bonus-toggle,.primary-button,.next-week-button,.previous-week-button,.history-link,.icon-button,.person-switch,.core-check { min-height:48px; }
+.pair-check { min-width:88px; font-size:12px; }
+.core-action,.core-check,.rest-button { font-size:12px; }
+.primary-button { min-height:58px; border-radius:14px; font-size:16px; font-weight:800; }
+.superset-card,.bonus-card { padding:18px; border-radius:17px; }
+.superset-card > header > div strong { font-size:19px; }
+.exercise-guide { padding:11px 12px; font-size:13px; }
+.exercise-guide summary,.exercise-guide p,.exercise-guide ul,.exercise-guide strong,.exercise-guide a { font-size:13px; }
+.exercise-guide summary { min-height:42px; }
+@media(max-width:420px) {
+  .app-shell { width:min(100% - 26px,590px); }
+  .progress-card { padding:17px; }
+  .progress-icon { width:42px; height:42px; flex-basis:42px; }
+  .exercise-row { gap:9px; }
+  .exercise-name strong { font-size:14px; }
+  .exercise-check { width:42px; height:42px; min-width:42px; }
+  .pair-check { min-width:78px; }
+}
