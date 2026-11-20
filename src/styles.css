@@ -78,3 +78,7 @@
 
 
 .last-used-weight { grid-column: 1 / -1; color: #7b847b; font-size: 10px; line-height: 1.2; text-align: right; white-space: nowrap; }
+
+
+.history-delete { margin-top: 14px; padding: 7px 0; border: 0; background: transparent; color: #9b5e50; font: inherit; font-size: 12px; cursor: pointer; }
+.history-delete:active { opacity: .65; }
