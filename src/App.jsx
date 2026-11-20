@@ -135,6 +135,13 @@ export default function App() {
   const [showNextWeekConfirm, setShowNextWeekConfirm] = useState(false);
 
   const activeWorkout = PROGRAM.find(w => w.id === workoutId);
+  const activePairOrder = activeWorkout
+    ? (payload.supersetOrder?.['w' + (payload.week || 1) + '-' + workoutId] || [0, 1, 2, 3]).slice(0, 3)
+    : [];
+  const totalRequiredExercises = activePairOrder.length * 2;
+  const completedRequiredExercises = activeWorkout
+    ? activePairOrder.reduce((count, pairIndex) => count + activeWorkout.pairs[pairIndex].filter((_, exerciseIndex) => payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]).length, 0)
+    : 0;
   const week = payload.week || 1;
   const completedThisWeek = useMemo(() => PROGRAM.filter(w => payload.sessions.some(s => s.workoutId === w.id && s.week === week && s.completedAt)).length, [payload, week]);
 
@@ -481,6 +488,11 @@ export default function App() {
       <button className="back-button" onClick={() => setScreen("home")}>← All workouts</button>
       <section className="greeting workout-heading"><div><div className="eyebrow">WORKOUT {activeWorkout.id} · WEEK {week}</div><h2>{activeWorkout.name}</h2><p>{activeWorkout.focus}</p></div></section>
       {notice && <div className="warning-banner" role="alert"><Clock3 size={20}/><strong>{notice}</strong><button aria-label="Dismiss warning" onClick={() => setNotice("")}>×</button></div>}
+      <section className="live-progress-card" aria-label="Workout progress">
+        <div className="live-progress-top"><div><span className="eyebrow">YOUR PROGRESS</span><strong>{completedRequiredExercises} <span>/ {totalRequiredExercises}</span></strong></div><span className="live-progress-status">{completedRequiredExercises === totalRequiredExercises ? "Required work complete" : completedRequiredExercises === 0 ? "Ready when you are" : "Keep it moving"}</span></div>
+        <div className="live-progress-track"><i style={{ width: `${totalRequiredExercises ? completedRequiredExercises / totalRequiredExercises * 100 : 0}%` }} /></div>
+        <div className="live-progress-bottom"><span>{Math.round(totalRequiredExercises ? completedRequiredExercises / totalRequiredExercises * 100 : 0)}% complete</span><span>3 supersets · bonus optional</span></div>
+      </section>
       <div className="workout-controls"><span className="muted-label">3 required supersets · 1 optional bonus</span><div className="workout-datetime"><label className="workout-date-label">Workout date<input aria-label="Workout date" type="date" value={workoutDate} max={todayKey()} onChange={e => setWorkoutDate(e.target.value)} /></label><div className="workout-date-label"><span className="muted-label">Finish time</span><strong className="live-finish-time">{easternTime} Eastern</strong></div></div><span className="muted-label">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
       <section className="superset-list">{(payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3]).slice(0,3).map((pairIndex,displayIndex) => {
         const pair = activeWorkout.pairs[pairIndex];
