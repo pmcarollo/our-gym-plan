@@ -63,7 +63,6 @@ export default function App() {
   const [now, setNow] = useState(new Date());
   const [startedAt, setStartedAt] = useState(null);
   const [rest, setRest] = useState(0);
-  const [length, setLength] = useState(3);
   const [expandedBonus, setExpandedBonus] = useState(false);
 
   const activeWorkout = PROGRAM.find(w => w.id === workoutId);
@@ -144,7 +143,6 @@ export default function App() {
   function startWorkout(id) {
     setWorkoutId(id);
     setStartedAt(new Date().toISOString());
-    setLength(3);
     setExpandedBonus(false);
     setNotice("");
     setScreen("workout");
@@ -182,8 +180,9 @@ export default function App() {
 
   function nextWeek() {
     const nextWeek = week + 1;
-    const rotation = { ...(payload.rotation || {}), [nextWeek]: [...PROGRAM].sort(() => Math.random() - .5).map(w => w.id) };
-    save({ ...payload, week: nextWeek, rotation, done: {} });
+    const supersetOrder = { ...(payload.supersetOrder || {}) };
+    PROGRAM.forEach(workout => { supersetOrder['w' + nextWeek + '-' + workout.id] = [0, 1, 2].sort(() => Math.random() - .5); });
+    save({ ...payload, week: nextWeek, supersetOrder, done: {} });
   }
 
   function updateWeight(name, value) {
@@ -191,8 +190,7 @@ export default function App() {
     save({ ...payload, weights });
   }
 
-  const rotation = payload.rotation?.[week] || PROGRAM.map(w => w.id);
-  const orderedWorkouts = rotation.map(id => PROGRAM.find(w => w.id === id)).filter(Boolean);
+  const orderedWorkouts = PROGRAM;
   const easternTime = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "numeric", minute: "2-digit", hour12: true }).format(now);
 
   if (!token) return <main className="app-shell auth-shell">
@@ -236,17 +234,19 @@ export default function App() {
       <button className="back-button" onClick={() => {setScreen("home");setStartedAt(null);}}>← All workouts</button>
       <section className="greeting workout-heading"><div><div className="eyebrow">WORKOUT {activeWorkout.id} · WEEK {week}</div><h2>{activeWorkout.name}</h2><p>{activeWorkout.focus}</p></div></section>
       {notice && <div className="warning-banner"><Clock3 size={18}/><span>{notice}</span><button onClick={() => setNotice("")}>×</button></div>}
-      <div className="workout-controls"><label>Today's plan <select value={length} onChange={e => setLength(Number(e.target.value))}><option value="3">3 supersets + optional bonus</option><option value="4">4 supersets (bonus included)</option></select></label><span className="muted-label">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
-      <section className="superset-list">{activeWorkout.pairs.slice(0,3).map((pair,index) => {
+      <div className="workout-controls"><span className="muted-label">3 required supersets · 1 optional bonus</span><span className="muted-label">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
+      <section className="superset-list">{(payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2]).map((pairIndex,displayIndex) => {
+        const pair = activeWorkout.pairs[pairIndex];
+        const index = pairIndex;
         const complete = pair.every((_, ei) => payload.done?.[exerciseKey(workoutId,index,ei)]);
         return <article className={`superset-card ${complete ? "pair-complete" : ""}`} key={index}>
-          <header><div><span className="eyebrow">SUPERSET {index+1}</span><strong>{complete ? "Complete" : "A + B"}</strong></div><button className={`pair-check ${complete ? "checked" : ""}`} onClick={() => togglePair(index)}>{complete ? <Check size={17}/> : "Done"}</button></header>
+          <header><div><span className="eyebrow">SUPERSET {displayIndex+1}</span><strong>{complete ? "Complete" : "A + B"}</strong></div><button className={`pair-check ${complete ? "checked" : ""}`} onClick={() => togglePair(index)}>{complete ? <Check size={17}/> : "Done"}</button></header>
           {pair.map(([name,detail],ei) => <div className="exercise-row" key={name}><button className={`exercise-check ${payload.done?.[exerciseKey(workoutId,index,ei)] ? "checked" : ""}`} onClick={() => toggleExercise(index,ei)}>{payload.done?.[exerciseKey(workoutId,index,ei)] && <Check size={13}/>}</button><div className="exercise-name"><strong>{name}</strong><small>{detail}</small></div><label className="weight-input"><input inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span></label></div>)}
           <button className="rest-button" onClick={() => setRest(60)}><Timer size={14}/> Rest 60 sec</button>
         </article>;
       })}</section>
       <section className={`bonus-card ${expandedBonus ? "bonus-open" : ""}`}>
-        <button className="bonus-toggle" onClick={() => {setExpandedBonus(v => !v);setLength(4);}}><div><div className="eyebrow">OPTIONAL BONUS ROUND</div><strong>Superset 4 · Feeling saucy?</strong><small>Extra credit. Not required to finish.</small></div><span>{expandedBonus ? <ChevronUp/> : <ChevronDown/>}</span></button>
+        <button className="bonus-toggle" onClick={() => {setExpandedBonus(v => !v);}}><div><div className="eyebrow">OPTIONAL BONUS ROUND</div><strong>Superset 4 · Feeling saucy?</strong><small>Extra credit. Not required to finish.</small></div><span>{expandedBonus ? <ChevronUp/> : <ChevronDown/>}</span></button>
         {expandedBonus && <div className="bonus-content">{activeWorkout.pairs[3].map(([name,detail],ei) => <div className="exercise-row" key={name}><button className={`exercise-check ${payload.done?.[exerciseKey(workoutId,3,ei)] ? "checked" : ""}`} onClick={() => toggleExercise(3,ei)}>{payload.done?.[exerciseKey(workoutId,3,ei)] && <Check size={13}/>}</button><div className="exercise-name"><strong>{name}</strong><small>{detail}</small></div><label className="weight-input"><input inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span></label></div>)}<button className="pair-check bonus-done" onClick={() => togglePair(3)}>Mark bonus complete</button></div>}
       </section>
       {rest > 0 && <div className="rest-overlay"><div><div className="eyebrow">REST TIMER</div><strong>{Math.floor(rest/60)}:{String(rest%60).padStart(2,"0")}</strong><button onClick={() => setRest(0)}>Skip rest</button></div></div>}
