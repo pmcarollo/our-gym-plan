@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronDown, ChevronUp, Clock3, Dumbbell, Lock, LogOut, RotateCcw, Timer, Trophy } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Clock3, Dumbbell, Lock, LogOut, RefreshCw, RotateCcw, Timer, Trophy } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "";
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
@@ -217,6 +217,24 @@ export default function App() {
     finally { setBusy(false); }
   }
 
+  async function forceRefreshApp() {
+    try {
+      if ("caches" in window) {
+        const cacheNames = await window.caches.keys();
+        await Promise.all(cacheNames.map(name => window.caches.delete(name)));
+      }
+      if ("serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(registration => registration.unregister()));
+      }
+    } catch (e) {
+      // A cache cleanup failure should not prevent the cache-busted reload.
+    }
+    const refreshUrl = new URL(window.location.href);
+    refreshUrl.searchParams.set("refresh", Date.now().toString());
+    window.location.replace(refreshUrl.toString());
+  }
+
   function logout() {
     localStorage.removeItem(TOKEN_KEY);
     setToken("");
@@ -381,7 +399,7 @@ export default function App() {
   </section></main>;
 
   return <main className="app-shell">
-    <header className="topbar"><Brand /><div className="header-actions"><button className="person-switch" onClick={() => choosePerson(person === "Paul" ? "Chris" : "Paul")}>Switch to {person === "Paul" ? "Chris" : "Paul"}</button><button className="icon-button" aria-label="Lock app and sign out" title="Lock app and sign out" onClick={logout}><LogOut size={17}/></button></div></header>
+    <header className="topbar"><Brand /><div className="header-actions"><button className="person-switch" onClick={() => choosePerson(person === "Paul" ? "Chris" : "Paul")}>Switch to {person === "Paul" ? "Chris" : "Paul"}</button><button className="icon-button refresh-app-button" aria-label="Refresh app and check for updates" title="Refresh app and check for updates" onClick={forceRefreshApp}><RefreshCw size={15}/></button><button className="icon-button" aria-label="Lock app and sign out" title="Lock app and sign out" onClick={logout}><LogOut size={17}/></button></div></header>
     {screen === "home" ? <>
       <section className="greeting"><div><div className="eyebrow">LET'S GET AFTER IT</div><h2>Morning, {person}.</h2><p>Week {week} · {easternTime} Eastern</p></div><div className="week-mark"><span>WEEK</span><strong>{String(week).padStart(2,"0")}</strong></div></section>
       <section className="progress-card"><div className="progress-copy"><div className="eyebrow">THIS WEEK</div><strong>{completedThisWeek} of 4 workouts complete</strong><span>{completedThisWeek === 4 ? "That's a wrap. Nice work." : "Keep the rotation rolling."}</span><div className="progress-track"><i style={{width:`${completedThisWeek/4*100}%`}}/></div></div><div className="progress-icon"><Trophy size={21}/></div></section>
