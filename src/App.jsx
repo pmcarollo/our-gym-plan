@@ -379,7 +379,10 @@ export default function App() {
         </article>
         <div className={`core-break ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "done" ? "core-done" : ""}`}>
           <div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE BREAK</span><strong>{core[0]}</strong><small>{core[1]} · {core[2]}</small></div>
-          <button className={`core-check ${coreDone ? "checked" : ""}`} onClick={() => toggleCore(core[0])}>{coreDone ? <Check size={15}/> : "Skip / Done"}</button>
+          <div className="core-actions">
+            <button className={`core-action ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "done" ? "selected" : ""}`} onClick={() => setCoreStatus(core[0], "done")}><Check size={13}/> Done</button>
+            <button className={`core-action ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "skipped" ? "selected" : ""}`} onClick={() => setCoreStatus(core[0], "skipped")}>Skip</button>
+          </div>
           <ExerciseGuide name={core[0]}/>
         </div>
         </div>;
