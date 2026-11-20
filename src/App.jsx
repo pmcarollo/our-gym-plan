@@ -80,6 +80,14 @@ function seededShuffle(items, seedText) {
   }
   return result;
 }
+function currentCalendarWeekKey(date = new Date()) {
+  const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day = utcDate.getUTCDay() || 7;
+  utcDate.setUTCDate(utcDate.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(utcDate.getUTCFullYear(), 0, 1));
+  const weekNumber = Math.ceil((((utcDate - yearStart) / 86400000) + 1) / 7);
+  return utcDate.getUTCFullYear() + "-W" + String(weekNumber).padStart(2, "0");
+}
 function generateWildCard(week) {
   // One deterministic Wild Card per plan week, shared by Paul and Chris
   // across profiles and devices. Weights and completion remain profile-specific.
@@ -393,12 +401,13 @@ export default function App() {
   }
 
   function startWildCardWorkout() {
-    const generated = generateWildCard(week);
+    const generated = generateWildCard(currentCalendarWeekKey());
     const coreOrderKey = 'w' + week + '-E';
     const coreOrder = { ...(payload.coreOrder || {}), [coreOrderKey]: generated.coreOrder };
+    const supersetOrder = { ...(payload.supersetOrder || {}), [coreOrderKey]: [0,1,2,3] };
     const done = { ...(payload.done || {}) };
     Object.keys(done).filter(key => key.startsWith("E-p")).forEach(key => delete done[key]);
-    save({ ...payload, coreOrder, done });
+    save({ ...payload, coreOrder, supersetOrder, done });
     setWildCardWorkout(generated);
     setWorkoutId("E");
     setWorkoutDate(todayKey());
