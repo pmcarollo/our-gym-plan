@@ -233,6 +233,22 @@ export default function App() {
     setScreen("home");
   }
 
+  function discardWorkout() {
+    if (!window.confirm("Discard this in-progress workout? Your saved weights will stay, but exercise checkmarks from this session will be reset.")) return;
+    localStorage.removeItem(draftKey(person));
+    const done = { ...(payload.done || {}) };
+    Object.keys(done).filter(key => key.startsWith(`${workoutId}-p`)).forEach(key => delete done[key]);
+    const coreStatus = { ...(payload.coreStatus || {}) };
+    Object.keys(coreStatus).filter(key => key.startsWith(`${startedAt}-`)).forEach(key => delete coreStatus[key]);
+    save({ ...payload, done, coreStatus });
+    setStartedAt(null);
+    setWorkoutId("");
+    setRest(0);
+    setExpandedBonus(false);
+    setNotice("");
+    setScreen("home");
+  }
+
   function startWorkout(id) {
     const coreOrderKey = 'w' + week + '-' + id;
     if (!payload.coreOrder?.[coreOrderKey]) {
@@ -362,7 +378,7 @@ export default function App() {
       <section className="progress-card"><div className="progress-copy"><div className="eyebrow">THIS WEEK</div><strong>{completedThisWeek} of 4 workouts complete</strong><span>{completedThisWeek === 4 ? "That's a wrap. Nice work." : "Keep the rotation rolling."}</span><div className="progress-track"><i style={{width:`${completedThisWeek/4*100}%`}}/></div></div><div className="progress-icon"><Trophy size={21}/></div></section>
       <div className="section-heading"><div><div className="eyebrow">THE ROTATION</div><h3>Your workouts</h3></div><span className="muted-label">A – D</span></div>
       <button className="history-link" onClick={() => setScreen("history")}>View workout history <span>↗</span></button>
-      {startedAt && workoutId && <button className="resume-workout" onClick={() => setScreen("workout")}><span><strong>Resume {PROGRAM.find(w => w.id === workoutId)?.name || "workout"}</strong><small>In-progress workout · saved on this device</small></span><span>↗</span></button>}
+      {startedAt && workoutId && <div className="resume-workout-wrap"><button className="resume-workout" onClick={() => setScreen("workout")}><span><strong>Resume {PROGRAM.find(w => w.id === workoutId)?.name || "workout"}</strong><small>In-progress workout · saved on this device</small></span><span>↗</span></button><button className="discard-workout" onClick={discardWorkout}>Discard workout</button></div>}
       <section className="workout-list">{orderedWorkouts.map(w => {
         const done = payload.sessions.find(s => s.workoutId === w.id && s.week === week);
         return <button className={`workout-card ${done ? "is-complete" : ""}`} key={w.id} onClick={() => startWorkout(w.id)}>
