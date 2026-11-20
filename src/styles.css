@@ -13,3 +13,12 @@
 .exercise-guide a{display:inline-flex;align-items:center;gap:5px;margin:0 0 3px;color:#315f46;font-size:10px;font-weight:700;text-decoration:underline;text-underline-offset:2px}
 .workout-date-label input{width:140px;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--green);font:inherit;font-size:11px}
 @media(max-width:420px){.workout-controls{align-items:flex-start;flex-wrap:wrap}.workout-controls .muted-label:last-child{margin-left:auto}}
+
+.workout-datetime{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0;flex:1 1 100%;}
+.workout-datetime .workout-date-label{min-width:0;width:100%;align-content:start;}
+.workout-datetime input{width:100%;min-width:0;min-height:38px;padding:8px 9px;}
+.workout-controls{align-items:start;}
+.resume-workout{display:flex;align-items:center;justify-content:space-between;width:100%;margin:0 0 10px;padding:15px;border:1px solid #b6cbb2;border-radius:14px;background:#edf3e9;color:var(--green);text-align:left;}
+.resume-workout>span:first-child{display:grid;gap:4px;}
+.resume-workout strong{font:600 16px Fraunces,Georgia,serif;}
+.resume-workout small{color:var(--muted);font-size:10px;}
