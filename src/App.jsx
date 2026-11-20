@@ -216,19 +216,19 @@ export default function App() {
   const [showNextWeekConfirm, setShowNextWeekConfirm] = useState(false);
   const [wildCardWorkout, setWildCardWorkout] = useState(null);
 
+  const week = payload.week || 1;
   const activeWorkout = PROGRAM.find(w => w.id === workoutId) || (workoutId === "E" ? wildCardWorkout : null);
   const activePairOrder = activeWorkout
-    ? (payload.supersetOrder?.['w' + (payload.week || 1) + '-' + workoutId] || [0, 1, 2, 3]).slice(0, 3)
+    ? (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0, 1, 2, 3]).slice(0, 3)
     : [];
   const totalRequiredExercises = activePairOrder.length * 2;
   const bonusPairIndex = (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3];
-  const completedBonusExercises = activeWorkout
+  const completedBonusExercises = activeWorkout?.pairs?.[bonusPairIndex]
     ? activeWorkout.pairs[bonusPairIndex].filter((_, ei) => payload.done?.[exerciseKey(workoutId, bonusPairIndex, ei)]).length
     : 0;
   const completedRequiredExercises = activeWorkout
     ? activePairOrder.reduce((count, pairIndex) => count + activeWorkout.pairs[pairIndex].filter((_, exerciseIndex) => payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]).length, 0)
     : 0;
-  const week = payload.week || 1;
   const completedThisWeek = useMemo(() => (payload.sessions || []).filter(s => s.week === week && s.completedAt).length, [payload, week]);
 
   useEffect(() => {
