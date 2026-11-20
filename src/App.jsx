@@ -82,7 +82,8 @@ function ExerciseGuide({ name }) {
     <a href={videoUrl} target="_blank" rel="noreferrer">Watch video demos <span>↗</span></a>
   </details>;
 }
-\nfunction api(action, body = {}) {
+
+function api(action, body = {}) {
   if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error("Supabase settings haven't been added to GitHub yet.");
   return fetch(`${SUPABASE_URL}/functions/v1/gym-api`, {
     method: "POST",
@@ -97,6 +98,7 @@ function ExerciseGuide({ name }) {
 
 const emptyPayload = () => ({ sessions: [], weights: {}, week: 1, rotation: {} });
 const todayKey = () => new Date().toLocaleDateString("en-CA");
+const currentTimeKey = () => { const d = new Date(); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
 export default function App() {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || "");
@@ -111,6 +113,7 @@ export default function App() {
   const [now, setNow] = useState(new Date());
   const [startedAt, setStartedAt] = useState(null);
   const [workoutDate, setWorkoutDate] = useState(todayKey());
+  const [workoutTime, setWorkoutTime] = useState(currentTimeKey());
   const [rest, setRest] = useState(0);
   const [expandedBonus, setExpandedBonus] = useState(false);
 
@@ -192,6 +195,7 @@ export default function App() {
   function startWorkout(id) {
     setWorkoutId(id);
     setWorkoutDate(todayKey());
+    setWorkoutTime(currentTimeKey());
     setStartedAt(new Date().toISOString());
     setExpandedBonus(false);
     setNotice("");
@@ -217,10 +221,10 @@ export default function App() {
   }
 
   function completeWorkout() {
-    // Keep the actual completion time, but use the selected local calendar date.
-    const currentTime = new Date();
+    // Combine the selected local date and time into the saved completion timestamp.
     const [year, month, day] = workoutDate.split("-").map(Number);
-    const completedAt = new Date(year, month - 1, day, currentTime.getHours(), currentTime.getMinutes(), currentTime.getSeconds()).toISOString();
+    const [hours, minutes] = workoutTime.split(":").map(Number);
+    const completedAt = new Date(year, month - 1, day, hours, minutes, 0).toISOString();
     const sessions = [...(payload.sessions || []), {
       id: crypto.randomUUID(), workoutId, week, profile: person,
       startedAt: startedAt || completedAt, completedAt, workoutDate,
@@ -289,13 +293,13 @@ export default function App() {
       <button className="back-button" onClick={() => {setScreen("home");setStartedAt(null);}}>← All workouts</button>
       <section className="greeting workout-heading"><div><div className="eyebrow">WORKOUT {activeWorkout.id} · WEEK {week}</div><h2>{activeWorkout.name}</h2><p>{activeWorkout.focus}</p></div></section>
       {notice && <div className="warning-banner"><Clock3 size={18}/><span>{notice}</span><button onClick={() => setNotice("")}>×</button></div>}
-      <div className="workout-controls"><span className="muted-label">3 required supersets · 1 optional bonus</span><label className="workout-date-label">Workout date<input aria-label="Workout date" type="date" value={workoutDate} max={todayKey()} onChange={e => setWorkoutDate(e.target.value)} /></label><span className="muted-label">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
+      <div className="workout-controls"><span className="muted-label">3 required supersets · 1 optional bonus</span><label className="workout-date-label">Workout date<input aria-label="Workout date" type="date" value={workoutDate} max={todayKey()} onChange={e => setWorkoutDate(e.target.value)} /></label><label className="workout-date-label">Completion time<input aria-label="Completion time" type="time" value={workoutTime} max={workoutDate === todayKey() ? currentTimeKey() : undefined} onChange={e => setWorkoutTime(e.target.value)} /></label><span className="muted-label">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
       <section className="superset-list">{(payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3]).slice(0,3).map((pairIndex,displayIndex) => {
         const pair = activeWorkout.pairs[pairIndex];
         const index = pairIndex;
         const complete = pair.every((_, ei) => payload.done?.[exerciseKey(workoutId,index,ei)]);
         return <article className={`superset-card ${complete ? "pair-complete" : ""}`} key={index}>
-          <header><div><span className="eyebrow">SUPERSET {displayIndex+1}</span><strong>{complete ? "Complete" : "A + B"}</strong></div><button className={`pair-check ${complete ? "checked" : ""}`} onClick={() => togglePair(index)}>{complete ? <Check size={17}/> : "Done"}</button></header>
+          <header><div><span className="eyebrow">SUPERSET {displayIndex+1}</span></div><button className={`pair-check ${complete ? "checked" : ""}`} onClick={() => togglePair(index)}>{complete ? <Check size={17}/> : "Done"}</button></header>
           {pair.map(([name,detail],ei) => <div className="exercise-row" key={name}><button className={`exercise-check ${payload.done?.[exerciseKey(workoutId,index,ei)] ? "checked" : ""}`} onClick={() => toggleExercise(index,ei)}>{payload.done?.[exerciseKey(workoutId,index,ei)] && <Check size={13}/>}</button><div className="exercise-name"><strong>{name}</strong><small>{detail}</small><ExerciseGuide name={name}/></div><label className="weight-input"><input inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span></label></div>)}
           <button className="rest-button" onClick={() => setRest(60)}><Timer size={14}/> Rest 60 sec</button>
         </article>;
