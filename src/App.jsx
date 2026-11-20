@@ -582,14 +582,14 @@ export default function App() {
           {pair.map(([name,detail],ei) => <div className="exercise-row" key={name}><button className={`exercise-check ${payload.done?.[exerciseKey(workoutId,index,ei)] ? "checked" : ""}`} onClick={() => toggleExercise(index,ei)}>{payload.done?.[exerciseKey(workoutId,index,ei)] && <Check size={13}/>}</button><div className="exercise-name"><strong>{name}</strong><small>{detail}</small><ExerciseGuide name={name}/></div><label className="weight-input"><input inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} lb</small>}</label></div>)}
           <button className="rest-button" onClick={() => setRest(60)}><Timer size={14}/> Rest 60 sec</button>
         </article>
-        <div className={`core-break ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "done" ? "core-done" : ""}`}>
-          <div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE BREAK</span><strong>{core[0]}</strong><small>{core[1]} · {core[2]}</small></div>
+        {displayIndex < 2 && <div className={`core-break ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "done" ? "core-done" : ""}`}>
+          <div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE · BETWEEN SETS</span><strong>{core[0]}</strong><small>{core[1]} · {core[2]}</small></div>
           <div className="core-actions">
             <button className={`core-action ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "done" ? "selected" : ""}`} onClick={() => setCoreStatus(core[0], "done")}><Check size={13}/> Done</button>
             <button className={`core-action ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "skipped" ? "selected" : ""}`} onClick={() => setCoreStatus(core[0], "skipped")}>Skip</button>
           </div>
           <ExerciseGuide name={core[0]}/>
-        </div>
+        </div>}
         </div>;
       })}</section>
       <section className={`bonus-card ${expandedBonus ? "bonus-open" : ""}`}>
