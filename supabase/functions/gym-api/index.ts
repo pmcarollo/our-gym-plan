@@ -61,9 +61,11 @@ Deno.serve(async (req) => {
   if (!await verify(token, signingSecret)) return json({ error: "Your session expired. Please enter the passcode again." }, 401);
 
   if (body.action === "load") {
-    const { data, error } = await db.from("gym_data").select("profile,payload,updated_at");
+    const profile = body.profile;
+    if (!["Paul", "Chris"].includes(profile)) return json({ error: "Invalid profile request." }, 400);
+    const { data, error } = await db.from("gym_data").select("profile,payload,updated_at").eq("profile", profile).maybeSingle();
     if (error) return json({ error: "Couldn't load workout data." }, 500);
-    return json({ profiles: data ?? [] });
+    return json({ profiles: data ? [data] : [] });
   }
 
   if (body.action === "save") {
