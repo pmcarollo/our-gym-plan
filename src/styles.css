@@ -792,3 +792,58 @@ h1 { font-family: Inter,ui-sans-serif,system-ui,sans-serif; font-weight: 850; le
 .library-item-meta { display:grid; gap:4px; margin-top:10px; color:#718074; font-size:11px; line-height:1.45; }
 .library-item .exercise-guide { margin-top:10px; }
 .library-item .exercise-guide summary { min-height:40px; }
+
+
+/* Settings: secondary account controls live here, not in the main header. */
+.settings-top-button {
+  width: 40px;
+  height: 40px;
+  border-color: #cbd5c7;
+  background: #f3f6ef;
+}
+.settings-section-label {
+  margin: 26px 2px 10px;
+  color: #829083;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+.settings-action-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  margin-top: 9px;
+  padding: 14px 16px;
+  border: 1px solid #dce3d8;
+  border-radius: 15px;
+  background: #fff;
+  color: #234c3c;
+  text-align: left;
+}
+.settings-action-card > span:nth-child(2) {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+.settings-action-card strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+.settings-action-card small {
+  color: #718074;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.settings-action-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #edf2e9;
+  color: #426b51;
+}
