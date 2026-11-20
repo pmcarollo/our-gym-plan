@@ -139,3 +139,24 @@ button, .workout-card, .profile-button { -webkit-tap-highlight-color: transparen
   .exercise-name strong { font-size: 13px; }
   .weight-input { padding: 6px 8px; }
 }
+
+
+/* Live workout progress: quick visual feedback while training. */
+.live-progress-card{margin:4px 0 16px;padding:15px 16px;border:1px solid #dfe5d8;border-radius:15px;background:#f0f3e9}
+.live-progress-top,.live-progress-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.live-progress-top>div{display:grid;gap:3px}
+.live-progress-top strong{font:600 25px Fraunces,Georgia,serif;color:var(--green)}
+.live-progress-top strong span{color:#8b978a;font-size:17px}
+.live-progress-status{color:#58745d;font-size:11px;font-weight:700;text-align:right}
+.live-progress-track{height:8px;margin:11px 0 8px;border-radius:99px;background:#dce4d6;overflow:hidden}
+.live-progress-track i{display:block;height:100%;border-radius:inherit;background:#557b5c;transition:width .2s ease}
+.live-progress-bottom{color:var(--muted);font-size:10px;font-weight:600}
+.superset-card>header{gap:10px}
+.superset-card>header>div{flex:1}
+.pair-check{min-width:78px;min-height:42px}
+.exercise-row:has(.exercise-check.checked) .exercise-name strong{text-decoration:line-through;text-decoration-color:#9bab98;color:#778477}
+.exercise-row:has(.exercise-check.checked){opacity:.82}
+@media(max-width:420px){
+  .live-progress-card{padding:13px}
+  .live-progress-status{max-width:130px}
+}
