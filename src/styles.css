@@ -18,7 +18,7 @@
 .workout-datetime .workout-date-label{min-width:0;width:100%;align-content:start;}
 .workout-datetime input{width:100%;min-width:0;min-height:38px;padding:8px 9px;}
 .workout-controls{align-items:start;}
-.resume-workout{display:flex;align-items:center;justify-content:space-between;width:100%;margin:0 0 10px;padding:15px;border:1px solid #b6cbb2;border-radius:14px;background:#edf3e9;color:var(--green);text-align:left;}
+ .resume-workout{display:flex;align-items:center;justify-content:space-between;width:100%;margin:0;padding:15px 15px 10px;border:0;border-radius:14px 14px 0 0;background:transparent;color:var(--green);text-align:left;}
 .resume-workout>span:first-child{display:grid;gap:4px;}
 .resume-workout strong{font:600 16px Fraunces,Georgia,serif;}
 .resume-workout small{color:var(--muted);font-size:10px;}
@@ -91,5 +91,5 @@
 .history-no-weights { margin: 0; color: var(--muted, #777); font-size: 12px; }
 
 
-.resume-workout-wrap { display: grid; gap: 5px; }
-.discard-workout { justify-self: end; padding: 5px 8px; border: 0; background: transparent; color: #9b5e50; font: inherit; font-size: 11px; cursor: pointer; }
+.resume-workout-wrap { display: grid; gap: 0; margin-bottom: 12px; border: 1px solid #b6cbb2; border-radius: 14px; background: #edf3e9; overflow: hidden; }
+.discard-workout { justify-self: start; margin: 0 15px 10px; padding: 3px 0; border: 0; background: transparent; color: #9b5e50; font: inherit; font-size: 11px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
