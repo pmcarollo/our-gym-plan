@@ -160,9 +160,6 @@ export default function App() {
     if (!person) return;
     if (startedAt && workoutId) {
       localStorage.setItem(draftKey(person), JSON.stringify({ workoutId, startedAt, workoutDate, workoutTime }));
-    } else {
-      localStorage.removeItem(draftKey(person));
-    }
   }, [person, workoutId, startedAt, workoutDate, workoutTime]);
 
   useEffect(() => {
@@ -215,6 +212,8 @@ export default function App() {
 
   function choosePerson(name) {
     localStorage.setItem(PERSON_KEY, name);
+    setStartedAt(null);
+    setWorkoutId("");
     setPerson(name);
     setScreen("home");
   }
