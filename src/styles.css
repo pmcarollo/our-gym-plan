@@ -112,3 +112,30 @@
 .modal-actions button { padding: 10px 13px; border-radius: 9px; font-size: 11px; font-weight: 700; }
 .modal-cancel { border: 1px solid var(--line); background: transparent; color: var(--green); }
 .modal-confirm { border: 0; background: var(--green); color: #fff; }
+
+
+/* Larger, gym-friendly controls: preserve the existing palette and visual language. */
+:root { --gym-touch: 46px; }
+button, .workout-card, .profile-button { -webkit-tap-highlight-color: transparent; }
+.exercise-check { width: 30px; height: 30px; min-width: 30px; border-radius: 9px; }
+.pair-check, .core-action, .rest-button, .bonus-toggle, .primary-button,
+.next-week-button, .previous-week-button, .history-link, .icon-button, .person-switch {
+  min-height: var(--gym-touch);
+}
+.exercise-name strong { font-size: 14px; line-height: 1.35; }
+.exercise-name small, .workout-info small, .muted-label, .workout-controls label,
+.core-break-copy small, .history-time, .history-exercise-row, .small-note { font-size: 12px; }
+.weight-input { min-height: 44px; padding: 8px 10px; font-size: 12px; }
+.weight-input input { width: 48px; min-height: 34px; font-size: 18px; }
+.workout-card { min-height: 70px; padding: 16px; }
+.workout-info strong { font-size: 15px; }
+.superset-card, .bonus-card { padding: 17px; }
+.exercise-row { gap: 12px; padding: 14px 0; }
+.core-check, .core-action { padding: 10px 12px; font-size: 12px; }
+.primary-button { min-height: 52px; font-size: 15px; }
+.live-finish-time { display: block; min-height: 38px; padding: 9px 0; color: var(--green); font-size: 13px; }
+@media (max-width: 420px) {
+  .exercise-row { gap: 8px; }
+  .exercise-name strong { font-size: 13px; }
+  .weight-input { padding: 6px 8px; }
+}
