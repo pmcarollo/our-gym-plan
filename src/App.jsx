@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, ChevronDown, ChevronUp, Clock3, Dumbbell, ExternalLink, Lock, LogOut, RefreshCw, RotateCcw, Timer, Trophy } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, ChevronUp, Clock3, Dumbbell, ExternalLink, Library, Lock, LogOut, RefreshCw, RotateCcw, Settings, Timer, Trophy } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "";
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
@@ -166,6 +166,51 @@ const EXERCISE_GUIDES = {
   "Cable wood chop": ["A diagonal cable movement that trains trunk control.", ["Stand sideways to the cable with feet planted.", "Move the handle diagonally across your body with control.", "Let your upper body rotate naturally while hips stay stable."], "Avoid yanking with your arms or twisting through your lower back."]
 };
 
+const EXERCISE_MUSCLES = {
+  "DB bench press":["Chest","Triceps","Shoulders"],"Lat pulldown":["Back","Biceps"],
+  "One-arm DB row":["Back","Biceps"],"Rope triceps pressdown":["Triceps"],
+  "Incline DB press":["Chest","Shoulders","Triceps"],"Overhead DB triceps extension":["Triceps"],
+  "Push-up":["Chest","Triceps","Shoulders"],"Face pull":["Shoulders","Back"],
+  "Goblet squat":["Quads","Glutes"],"DB Romanian deadlift":["Hamstrings","Glutes"],
+  "Leg press":["Quads","Glutes"],"Seated hamstring curl":["Hamstrings"],
+  "Standing calf raise":["Calves"],"DB hip thrust":["Glutes","Hamstrings"],
+  "Reverse lunge":["Quads","Glutes","Hamstrings"],"Leg extension":["Quads"],
+  "Seated DB shoulder press":["Shoulders","Triceps"],"Chest-supported DB row":["Back","Biceps"],
+  "DB lateral raise":["Shoulders"],"Hammer curl":["Biceps","Forearms"],
+  "Alternating DB curl":["Biceps"],"Rear delt fly":["Shoulders","Back"],
+  "Incline DB curl":["Biceps"],"DB step-up":["Quads","Glutes"],
+  "Incline push-up":["Chest","Triceps","Shoulders"],"DB deadlift":["Hamstrings","Glutes"],
+  "Dead bug":["Core"],"Pallof press":["Core"],"Front plank":["Core"],
+  "Farmer carry":["Grip","Core","Forearms"],"Cable wood chop":["Core","Obliques"],
+  "Reverse crunch":["Core"],"Bird dog":["Core"],"Side plank":["Core","Obliques"],
+  "Mountain climber":["Core","Conditioning"],"Bicycle crunch":["Core","Obliques"],
+  "Heel taps":["Core","Obliques"],"Bear plank shoulder tap":["Core","Shoulders"],
+  "Glute bridge march":["Glutes","Core"],"DB floor press":["Chest","Triceps"],
+  "Cable chest fly":["Chest"],"Close-grip push-up":["Triceps","Chest"],
+  "Smith machine bench press":["Chest","Triceps"],"Seated cable row":["Back","Biceps"],
+  "Straight-arm pulldown":["Back"],"Reverse-grip lat pulldown":["Back","Biceps"],
+  "Cable rear-delt row":["Back","Shoulders"],"DB split squat":["Quads","Glutes"],
+  "Lateral lunge":["Quads","Glutes"],"Single-leg DB Romanian deadlift":["Hamstrings","Glutes"],
+  "Smith machine squat":["Quads","Glutes"],"Rower sprint":["Conditioning","Back","Legs"],
+  "Bike sprint":["Conditioning","Legs"],"Incline treadmill walk":["Conditioning","Legs"],
+  "Elliptical intervals":["Conditioning","Legs"]
+};
+function buildExerciseLibrary() {
+  const items = new Map();
+  const add = (name, prescription, source) => {
+    const item = items.get(name) || { name, muscles: EXERCISE_MUSCLES[name] || ["Full body"], prescriptions: [], sources: [] };
+    if (prescription && !item.prescriptions.includes(prescription)) item.prescriptions.push(prescription);
+    if (!item.sources.includes(source)) item.sources.push(source);
+    items.set(name, item);
+  };
+  PROGRAM.forEach(workout => workout.pairs.forEach((pair, pairIndex) => pair.forEach(([name, prescription]) => add(name, prescription, pairIndex === 3 ? "Bonus" : workout.name))));
+  Object.values(WILD_CARD_POOLS).flat().forEach(([name, prescription]) => add(name, prescription, "Wild Card"));
+  CORE_BREAKS.forEach(([name, prescription]) => add(name, prescription, "Optional core"));
+  return [...items.values()].sort((a,b) => a.name.localeCompare(b.name));
+}
+const EXERCISE_LIBRARY = buildExerciseLibrary();
+const LIBRARY_FILTERS = ["All","Chest","Back","Shoulders","Biceps","Triceps","Quads","Hamstrings","Glutes","Calves","Core","Conditioning","Grip"];
+
 function ExerciseGuide({ name }) {
   const guide = EXERCISE_GUIDES[name];
   if (!guide) return null;
@@ -203,6 +248,8 @@ export default function App() {
   const [pin, setPin] = useState("");
   const [payload, setPayload] = useState(emptyPayload);
   const [screen, setScreen] = useState("home");
+  const [libraryFilter, setLibraryFilter] = useState("All");
+  const [librarySearch, setLibrarySearch] = useState("");
   const [workoutId, setWorkoutId] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -518,6 +565,7 @@ export default function App() {
   }
 
   const orderedWorkouts = PROGRAM;
+  const filteredLibrary = EXERCISE_LIBRARY.filter(item => (libraryFilter === "All" || item.muscles.includes(libraryFilter)) && (item.name.toLowerCase().includes(librarySearch.toLowerCase()) || item.muscles.join(" ").toLowerCase().includes(librarySearch.toLowerCase())));
   const wildCardCompleted = payload.sessions?.some(s => s.workoutId === "E" && s.week === week && s.completedAt);
   const easternTime = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "numeric", minute: "2-digit", hour12: true }).format(now);
   const easternHour = Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "2-digit", hourCycle: "h23" }).format(now));
@@ -546,7 +594,7 @@ export default function App() {
   </section></main>;
 
   return <main className="app-shell">
-    <header className="topbar"><Brand /><div className="header-actions"><button className="person-switch" onClick={() => choosePerson(person === "Paul" ? "Chris" : "Paul")}>Switch to {person === "Paul" ? "Chris" : "Paul"}</button><button className="icon-button refresh-app-button" aria-label="Refresh app and check for updates" title="Refresh app and check for updates" onClick={forceRefreshApp}><RefreshCw size={15}/></button><button className="icon-button" aria-label="Lock app and sign out" title="Lock app and sign out" onClick={logout}><LogOut size={17}/></button></div></header>
+    <header className="topbar"><Brand /><div className="header-actions"><button className="icon-button" aria-label="Settings" title="Settings" onClick={() => setScreen("settings")}><Settings size={17}/></button><button className="person-switch" onClick={() => choosePerson(person === "Paul" ? "Chris" : "Paul")}>Switch to {person === "Paul" ? "Chris" : "Paul"}</button><button className="icon-button refresh-app-button" aria-label="Refresh app and check for updates" title="Refresh app and check for updates" onClick={forceRefreshApp}><RefreshCw size={15}/></button><button className="icon-button" aria-label="Lock app and sign out" title="Lock app and sign out" onClick={logout}><LogOut size={17}/></button></div></header>
     {screen === "home" ? <>
       <section className="greeting"><div><div className="eyebrow">LET'S GET AFTER IT</div><h2>{timeGreeting}, {person}.</h2><p>Week {week} · {easternTime} Eastern</p></div><div className="week-mark"><span>WEEK</span><strong>{String(week).padStart(2,"0")}</strong></div></section>
       <section className={`progress-card ${completedThisWeek >= 4 ? "goal-reached" : ""}`}><div className="progress-copy"><div className="eyebrow">THIS WEEK</div><strong>{completedThisWeek >= 4 ? "4 of 4 goal complete" : `${completedThisWeek} of 4 workouts`}</strong><span>{completedThisWeek >= 4 ? "Goal hit. Keep going for extra credit." : "Build your week, one workout at a time."}</span><div className="progress-track"><i style={{width:`${Math.min(completedThisWeek,4)/4*100}%`}}/></div><div className="progress-meta"><span>WEEKLY GOAL</span>{completedThisWeek > 4 ? <b className="extra-credit">+{completedThisWeek-4} EXTRA CREDIT</b> : <span>{4-completedThisWeek} TO GO</span>}</div></div><div className="progress-icon"><Trophy size={23}/></div></section>
@@ -581,6 +629,22 @@ export default function App() {
       </div>}
       <div className="footer-note"><Clock3 size={14}/> Workout cutoff · 6:50 AM Eastern</div>
       {busy && <p className="muted-label">Syncing…</p>}
+    </> : screen === "settings" ? <>
+      <button className="back-button" onClick={() => setScreen("home")}>← Back to workouts</button>
+      <section className="greeting"><div><div className="eyebrow">PREFERENCES & REFERENCES</div><h2>Settings</h2><p>Tools and information for your training plan.</p></div></section>
+      <button className="settings-library-card" onClick={() => setScreen("library")}><span className="settings-library-icon"><Library size={22}/></span><span><strong>Exercise Library</strong><small>{EXERCISE_LIBRARY.length} exercises · browse by muscle group, workout and training type</small></span><ArrowRight size={19}/></button>
+      <div className="settings-note">The library brings together regular workouts, bonus movements, Wild Card options and optional core exercises.</div>
+    </> : screen === "library" ? <>
+      <button className="back-button" onClick={() => setScreen("settings")}>← Back to settings</button>
+      <section className="greeting"><div><div className="eyebrow">OUR SHARED EXERCISE POOL</div><h2>Exercise Library</h2><p>{EXERCISE_LIBRARY.length} exercises across your training plan.</p></div></section>
+      <input className="library-search" aria-label="Search exercises" placeholder="Search exercises or muscle groups…" value={librarySearch} onChange={e => setLibrarySearch(e.target.value)}/>
+      <div className="library-filters">{LIBRARY_FILTERS.map(filter => <button key={filter} className={libraryFilter === filter ? "selected" : ""} onClick={() => setLibraryFilter(filter)}>{filter}</button>)}</div>
+      <section className="library-list">{filteredLibrary.map(item => <article className="library-item" key={item.name}>
+        <div className="library-item-heading"><div><strong>{item.name}</strong><small>{item.muscles.join(" · ")}</small></div><span>{item.sources.includes("Wild Card") ? "Wild Card" : item.sources.includes("Bonus") ? "Bonus" : "Program"}</span></div>
+        <div className="library-item-meta"><span>{item.sources.join(" · ")}</span><span>{item.prescriptions.join(" / ")}</span></div>
+        <ExerciseGuide name={item.name}/>
+      </article>)}{!filteredLibrary.length && <p className="history-empty">No exercises match that search.</p>}</section>
+      <p className="library-footnote">Exercises are indexed from the regular program, bonus pairs, Wild Card pool and optional core rotation. An exercise can appear in more than one place.</p>
     </> : screen === "history" ? <>
       <button className="back-button" onClick={() => setScreen("home")}>← Back to workouts</button>
       <section className="greeting"><div><div className="eyebrow">YOUR TRAINING LOG</div><h2>Workout history</h2><p>{payload.sessions?.length || 0} completed workouts</p></div></section>
