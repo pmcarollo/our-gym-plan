@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronDown, ChevronUp, Clock3, Dumbbell, Lock, LogOut, RefreshCw, RotateCcw, Timer, Trophy } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, ChevronUp, Clock3, Dumbbell, ExternalLink, Lock, LogOut, RefreshCw, RotateCcw, Timer, Trophy } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "";
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
@@ -171,12 +171,12 @@ function ExerciseGuide({ name }) {
   if (!guide) return null;
   const videoUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(name + " exercise proper form demonstration")}`;
   return <details className="exercise-guide">
-    <summary>How to do it · Watch demo <span>↗</span></summary>
+    <summary>How to do it · Watch demo <ExternalLink size={16} strokeWidth={2}/></summary>
     <p>{guide[0]}</p>
     <strong>Form cues</strong>
     <ul>{guide[1].map((cue, i) => <li key={i}>{cue}</li>)}</ul>
     <p className="guide-mistake"><b>Watch for:</b> {guide[2]}</p>
-    <a href={videoUrl} target="_blank" rel="noreferrer">Watch video demos <span>↗</span></a>
+    <a href={videoUrl} target="_blank" rel="noreferrer">Watch video demos <ExternalLink size={15} strokeWidth={2}/></a>
   </details>;
 }
 
@@ -541,7 +541,7 @@ export default function App() {
 
   if (!person) return <main className="app-shell auth-shell"><Brand /><section className="welcome-panel">
     <div className="eyebrow">WHO'S WORKING OUT?</div><h2>Choose your profile.</h2><p>We'll remember your choice on this device.</p>
-    <div className="profile-options">{["Paul", "Chris"].map(name => <button className="profile-button" key={name} onClick={() => choosePerson(name)}>{name}<span>↗</span></button>)}</div>
+    <div className="profile-options">{["Paul", "Chris"].map(name => <button className="profile-button" key={name} onClick={() => choosePerson(name)}>{name}<ArrowRight size={17} strokeWidth={2}/></button>)}</div>
     {error && <p className="error">{error}</p>}
   </section></main>;
 
@@ -551,17 +551,17 @@ export default function App() {
       <section className="greeting"><div><div className="eyebrow">LET'S GET AFTER IT</div><h2>{timeGreeting}, {person}.</h2><p>Week {week} · {easternTime} Eastern</p></div><div className="week-mark"><span>WEEK</span><strong>{String(week).padStart(2,"0")}</strong></div></section>
       <section className={`progress-card ${completedThisWeek >= 4 ? "goal-reached" : ""}`}><div className="progress-copy"><div className="eyebrow">THIS WEEK</div><strong>{completedThisWeek >= 4 ? "4 of 4 goal complete" : `${completedThisWeek} of 4 workouts`}</strong><span>{completedThisWeek >= 4 ? "Goal hit. Keep going for extra credit." : "Build your week, one workout at a time."}</span><div className="progress-track"><i style={{width:`${Math.min(completedThisWeek,4)/4*100}%`}}/></div><div className="progress-meta"><span>WEEKLY GOAL</span>{completedThisWeek > 4 ? <b className="extra-credit">+{completedThisWeek-4} EXTRA CREDIT</b> : <span>{4-completedThisWeek} TO GO</span>}</div></div><div className="progress-icon"><Trophy size={23}/></div></section>
       <div className="section-heading"><div><div className="eyebrow">THE ROTATION</div><h3>Your workouts</h3></div><span className="muted-label">A – D</span></div>
-      <button className="history-link" onClick={() => setScreen("history")}>View workout history <span>↗</span></button>
-      {startedAt && workoutId && <div className="resume-workout-wrap"><button className="resume-workout" onClick={() => setScreen("workout")}><span><strong>Resume {activeWorkout?.name || "workout"}</strong><small>In-progress workout · saved on this device</small></span><span>↗</span></button><button className="discard-workout" onClick={discardWorkout}>Discard workout</button></div>}
+      <button className="history-link" onClick={() => setScreen("history")}>View workout history <ArrowRight size={17} strokeWidth={2}/></button>
+      {startedAt && workoutId && <div className="resume-workout-wrap"><button className="resume-workout" onClick={() => setScreen("workout")}><span><strong>Resume {activeWorkout?.name || "workout"}</strong><small>In-progress workout · saved on this device</small></span><ArrowRight size={18} strokeWidth={2}/></button><button className="discard-workout" onClick={discardWorkout}>Discard workout</button></div>}
       <section className="workout-list">{orderedWorkouts.map(w => {
         const done = payload.sessions.find(s => s.workoutId === w.id && s.week === week);
         return <button className={`workout-card ${done ? "is-complete" : ""}`} key={w.id} disabled={Boolean(startedAt)} onClick={() => startWorkout(w.id)}>
-          <span className="workout-letter">{done ? <Check size={20}/> : w.id}</span><span className="workout-info"><strong>{w.name}</strong><small>{done ? `Completed · ${new Date(done.completedAt).toLocaleDateString()}` : w.focus}</small></span><span className="workout-arrow">{done ? "✓" : "↗"}</span>
+          <span className="workout-letter">{done ? <Check size={20}/> : w.id}</span><span className="workout-info"><strong>{w.name}</strong><small>{done ? `Completed · ${new Date(done.completedAt).toLocaleDateString()}` : w.focus}</small></span><span className="workout-arrow">{done ? <Check size={18} strokeWidth={2.5}/> : <ArrowRight size={18} strokeWidth={2}/>}</span>
         </button>;
       })}</section>
       <div className="wild-card-section">
         <div className="wild-card-heading"><div><div className="eyebrow">WHEN YOU WANT SOMETHING DIFFERENT</div><strong>Wild Card</strong><small>Fresh push, pull, legs and finisher combinations, drawn from a separate exercise pool.</small></div><span className="wild-card-spark">✦</span></div>
-        <button className={`wild-card-button ${wildCardCompleted ? "is-complete" : ""}`} disabled={Boolean(startedAt)} onClick={startWildCardWorkout}><span>{wildCardCompleted ? "Generate another Wild Card" : "Generate a Wild Card workout"}</span><span>↗</span></button>
+        <button className={`wild-card-button ${wildCardCompleted ? "is-complete" : ""}`} disabled={Boolean(startedAt)} onClick={startWildCardWorkout}><span>{wildCardCompleted ? "Generate another Wild Card" : "Generate a Wild Card workout"}</span><ArrowRight size={19} strokeWidth={2}/></button>
         <p className="wild-card-note">Shared weekly workout for Paul + Chris · counts toward your 4-workout goal · extra sessions earn bonus credit</p>
       </div>
       <div className="week-navigation">
