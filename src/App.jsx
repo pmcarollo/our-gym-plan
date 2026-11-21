@@ -219,7 +219,7 @@ function ExerciseGuide({ name }) {
   if (!guide) return null;
   const videoUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(name + " exercise proper form demonstration")}`;
   return <details className="exercise-guide">
-    <summary>How to do it · Watch demo <ExternalLink size={16} strokeWidth={2}/></summary>
+    <summary><span className="guide-summary-closed"><Dumbbell size={14}/> How to</span><span className="guide-summary-open">Hide guide <ChevronUp size={14}/></span><ChevronDown className="guide-chevron" size={14}/></summary>
     <p>{guide[0]}</p>
     <strong>Form cues</strong>
     <ul>{guide[1].map((cue, i) => <li key={i}>{cue}</li>)}</ul>
