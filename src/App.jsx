@@ -269,6 +269,7 @@ export default function App() {
   const [wildCardWorkout, setWildCardWorkout] = useState(null);
   const [viewSessionId, setViewSessionId] = useState(null);
   const [editingCompletedSession, setEditingCompletedSession] = useState(false);
+  const [currentWorkoutWeights, setCurrentWorkoutWeights] = useState({});
 
   const viewedSession = (payload.sessions || []).find(session => session.id === viewSessionId) || null;
 
@@ -323,6 +324,7 @@ export default function App() {
       setStartedAt(draft.startedAt);
       setWorkoutDate(draft.workoutDate || todayKey());
       setWorkoutTime(draft.workoutTime || currentTimeKey());
+      setCurrentWorkoutWeights(draft.currentWorkoutWeights || {});
       setScreen("workout");
     } catch {
       localStorage.removeItem(draftKey(person));
@@ -332,9 +334,9 @@ export default function App() {
   useEffect(() => {
     if (!person) return;
     if (startedAt && workoutId) {
-      localStorage.setItem(draftKey(person), JSON.stringify({ workoutId, startedAt, workoutDate, workoutTime, workoutSnapshot: wildCardWorkout }));
+      localStorage.setItem(draftKey(person), JSON.stringify({ workoutId, startedAt, workoutDate, workoutTime, workoutSnapshot: wildCardWorkout, currentWorkoutWeights }));
     }
-  }, [person, workoutId, startedAt, workoutDate, workoutTime, wildCardWorkout]);
+  }, [person, workoutId, startedAt, workoutDate, workoutTime, wildCardWorkout, currentWorkoutWeights]);
 
   useEffect(() => {
     if (!startedAt || !activeWorkout || !person) return;
@@ -433,15 +435,8 @@ export default function App() {
     const coreStatus = { ...(payload.coreStatus || {}) };
     Object.keys(coreStatus).filter(key => key.startsWith(`${startedAt}-`)).forEach(key => delete coreStatus[key]);
 
-    // Restore the latest recorded weight for each exercise from completed history.
-    const weights = {};
-    const sessions = [...(payload.sessions || [])].sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0));
-    for (const session of sessions) {
-      for (const item of session.exerciseSnapshot?.flat() || []) {
-        if (item.weight !== "" && item.weight != null && weights[item.name] === undefined) weights[item.name] = item.weight;
-      }
-    }
-    save({ ...payload, done, coreStatus, weights });
+    save({ ...payload, done, coreStatus });
+    setCurrentWorkoutWeights({});
     setStartedAt(null);
     setWorkoutId("");
     setWildCardWorkout(null);
@@ -469,6 +464,7 @@ export default function App() {
     setWorkoutId(id);
     setWorkoutDate(todayKey());
     setWorkoutTime(currentTimeKey());
+    setCurrentWorkoutWeights({});
     setStartedAt(new Date().toISOString());
     setExpandedBonus(false);
     setNotice("");
@@ -489,6 +485,7 @@ export default function App() {
     setWorkoutId("E");
     setWorkoutDate(todayKey());
     setWorkoutTime(currentTimeKey());
+    setCurrentWorkoutWeights({});
     setStartedAt(new Date().toISOString());
     setExpandedBonus(false);
     setNotice("");
@@ -532,9 +529,10 @@ export default function App() {
         const [name, prescription] = CORE_BREAKS[coreIndex];
         return { afterSuperset: displayIndex + 1, name, prescription, status: payload.coreStatus?.[`${startedAt}-${name}`] || "not recorded" };
       }),
-      exerciseSnapshot: activeWorkout.pairs.map((pair, pairIndex) => pair.map(([name, detail], exerciseIndex) => ({ name, detail, weight: payload.weights?.[name] || "", completed: Boolean(payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]) })))
+      exerciseSnapshot: activeWorkout.pairs.map((pair, pairIndex) => pair.map(([name, detail], exerciseIndex) => ({ name, detail, weight: currentWorkoutWeights[name] || "", completed: Boolean(payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]) })))
     }];
-    save({ ...payload, sessions });
+    const weights = { ...(payload.weights || {}), ...currentWorkoutWeights };
+    save({ ...payload, sessions, weights });
     localStorage.removeItem(draftKey(person));
     setStartedAt(null);
     setWildCardWorkout(null);
@@ -598,8 +596,7 @@ export default function App() {
   }
 
   function updateWeight(name, value) {
-    const weights = { ...(payload.weights || {}), [name]: value };
-    save({ ...payload, weights });
+    setCurrentWorkoutWeights(current => ({ ...current, [name]: value }));
   }
 
   function lastUsedWeight(name) {
@@ -772,7 +769,7 @@ export default function App() {
         return <div className="superset-and-core" key={index}>
         <article className={`superset-card ${complete ? "pair-complete" : ""}`}>
           <header><div className="superset-heading-copy"><span className="eyebrow">SUPERSET {displayIndex+1}</span><span className="pair-progress-label">{complete ? "Pair complete" : "Pair not complete"}</span></div><button className={`pair-check ${complete ? "checked" : ""}`} onClick={() => togglePair(index)}>{complete ? <><Check size={17}/> Done</> : "Complete pair"}</button></header>
-          {pair.map(([name,detail]) => <div className="exercise-row" key={name}><div className="exercise-name"><strong>{name}</strong><small>{detail}</small></div><label className="weight-input"><input aria-label={name + " weight in pounds"} inputMode="decimal" placeholder="—" value={payload.weights?.[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} lb</small>}</label><ExerciseGuide name={name}/></div>)}
+          {pair.map(([name,detail]) => <div className="exercise-row" key={name}><div className="exercise-name"><strong>{name}</strong><small>{detail}</small></div><label className="weight-input"><input aria-label={name + " weight in pounds"} inputMode="decimal" placeholder="—" value={currentWorkoutWeights[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} lb</small>}</label><ExerciseGuide name={name}/></div>)}
           <button className="rest-button" onClick={() => setRest(60)}><Timer size={14}/> Rest 60 sec</button>
         </article>
         {displayIndex < 2 && <div className={`core-break ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "done" ? "core-done" : ""}`}>
