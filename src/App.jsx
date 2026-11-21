@@ -58,6 +58,39 @@ const WILD_CARD_POOLS = {
   legs: [["DB split squat","3 sets · 8 each"],["Lateral lunge","3 sets · 8 each"],["Single-leg DB Romanian deadlift","3 sets · 8 each"],["Smith machine squat","3 sets · 10 reps"]],
   finisher: [["Rower sprint","4 rounds · 30 sec"],["Bike sprint","4 rounds · 30 sec"],["Incline treadmill walk","4 rounds · 1 min"],["Elliptical intervals","4 rounds · 1 min"]]
 };
+
+function stravaWorkoutText(session) {
+  const lines = [];
+  const normalizeRange = value => value.replace(/[–—]/g, "-").replace(/\s+/g, " ").trim();
+  const formatExercise = (item) => {
+    const detail = item.detail || "";
+    const weight = item.weight !== "" && item.weight != null ? ` ${item.weight}lbs` : "";
+    let prescription = "";
+    let match = detail.match(/(\d+)\s+sets?\s*[·x]\s*(\d+)\s*(reps?|each)/i);
+    if (match) {
+      prescription = `${match[1]}x${match[2]}${/each/i.test(match[3]) ? " each side" : ""}`;
+    } else if ((match = detail.match(/(\d+)\s+(?:sets?|rounds?)\s*[·x]\s*([\d–—-]+)\s*(sec(?:onds?)?)/i))) {
+      prescription = `${match[1]}x${normalizeRange(match[2])} sec`;
+    } else if ((match = detail.match(/(\d+)\s+carries?\s*[·x]\s*([\d–—-]+)\s*(yd|yards?)/i))) {
+      prescription = `${match[1]} carries of ${normalizeRange(match[2])} yd`;
+    } else if ((match = detail.match(/(\d+)\s+sets?\s*[·x]\s*(\d+)\s*(?:reps?)?/i))) {
+      prescription = `${match[1]}x${match[2]}`;
+    } else {
+      prescription = detail.replace(/\s*[·]\s*/g, " ").trim();
+    }
+    return `${prescription} ${item.name}${weight}`.trim();
+  };
+  (session.exerciseSnapshot || []).flat().filter(item => item.completed).forEach(item => lines.push(formatExercise(item)));
+  (session.coreSnapshot || []).filter(item => item.status === "done").forEach(item => {
+    const detail = item.prescription || "";
+    const match = detail.match(/([\d–—-]+)\s*(?:reps?)?\s*each(?:\s+side)?/i);
+    const timed = detail.match(/([\d–—-]+)\s*(sec(?:onds?)?)/i);
+    const prescription = match ? `${normalizeRange(match[1])} reps each side` : timed ? `${normalizeRange(timed[1])} sec` : detail;
+    lines.push(`${prescription} ${item.name}`.trim());
+  });
+  return lines.join("\n");
+}
+
 function seededRandom(seedText) {
   let seed = 2166136261;
   for (let i = 0; i < seedText.length; i++) {
@@ -269,6 +302,7 @@ export default function App() {
   const [wildCardWorkout, setWildCardWorkout] = useState(null);
   const [viewSessionId, setViewSessionId] = useState(null);
   const [editingCompletedSession, setEditingCompletedSession] = useState(false);
+  const [stravaCopiedId, setStravaCopiedId] = useState(null);
   const [currentWorkoutWeights, setCurrentWorkoutWeights] = useState({});
 
   const viewedSession = (payload.sessions || []).find(session => session.id === viewSessionId) || null;
@@ -575,6 +609,23 @@ export default function App() {
     setActiveModal(null);
   }
 
+
+  async function copyStravaWorkout(session) {
+    const text = stravaWorkoutText(session);
+    if (!text) {
+      setNotice("No completed exercises are available to export for this workout.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setStravaCopiedId(session.id);
+      setNotice("Workout copied. In Strava, edit the activity and use Text import under Exercises.");
+      window.setTimeout(() => setStravaCopiedId(current => current === session.id ? null : current), 2200);
+    } catch {
+      setError("Couldn't access the clipboard. Try opening the app in your browser and copy again.");
+    }
+  }
+
   function openCompletedWorkout(session) {
     setViewSessionId(session.id);
     setEditingCompletedSession(false);
@@ -743,6 +794,7 @@ export default function App() {
               <summary><span>Recorded weights</span><span>{recordedWeights.length ? `${recordedWeights.length} logged` : "None logged"}</span></summary>
               {recordedWeights.length ? recordedWeights.map(item => <div className="history-exercise-row" key={item.name}><span>{item.name}</span><strong>{item.weight} lb</strong></div>) : <p className="history-no-weights">No weights were recorded for this session.</p>}
             </details>
+            <button className="history-strava-export" onClick={() => copyStravaWorkout(session)}><ExternalLink size={15}/>{stravaCopiedId === session.id ? "Copied!" : "Copy for Strava"}</button>
             <button className="history-delete" onClick={() => deleteWorkout(session.id)}>Delete workout</button>
           </article>;
         })}
