@@ -941,3 +941,75 @@ h1 { font-family: Inter,ui-sans-serif,system-ui,sans-serif; font-weight: 850; le
   font-size: 9px;
   line-height: 1.2;
 }
+
+
+/* Compact exercise help: small inline affordance, expanded only on demand. */
+.exercise-guide {
+  display: inline-block;
+  width: auto;
+  max-width: 100%;
+  margin: 3px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  overflow: visible;
+}
+.exercise-guide summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  width: auto;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid #e0e8dc;
+  border-radius: 8px;
+  background: #f7f9f3;
+  color: #52745a;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.exercise-guide summary::-webkit-details-marker { display:none; }
+.exercise-guide .guide-summary-closed,
+.exercise-guide .guide-summary-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.exercise-guide .guide-summary-open { display:none; }
+.exercise-guide[open] {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  padding-bottom: 9px;
+  border: 1px solid #e1e7dc;
+  border-radius: 11px;
+  background: #f7f9f3;
+  overflow: hidden;
+}
+.exercise-guide[open] summary {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 0;
+  border-bottom: 1px solid #e6ebe2;
+  border-radius: 0;
+  background: transparent;
+}
+.exercise-guide[open] .guide-summary-closed,
+.exercise-guide[open] .guide-chevron { display:none; }
+.exercise-guide[open] .guide-summary-open { display:inline-flex; }
+.exercise-guide p,
+.exercise-guide strong,
+.exercise-guide ul,
+.exercise-guide a { margin-left:10px; margin-right:10px; }
+.exercise-guide p { margin-top:8px; font-size:11px; line-height:1.5; }
+.exercise-guide strong { display:block; margin-top:8px; font-size:11px; }
+.exercise-guide ul { gap:4px; margin-top:5px; margin-bottom:8px; font-size:11px; line-height:1.45; }
+.exercise-guide .guide-mistake { padding:8px; }
+.exercise-guide a { min-height:30px; margin-top:2px; font-size:11px; }
+.library-item .exercise-guide { display:block; width:100%; margin-top:10px; }
