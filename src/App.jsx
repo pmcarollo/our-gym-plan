@@ -267,6 +267,10 @@ export default function App() {
   const [expandedBonus, setExpandedBonus] = useState(false);
   const [showNextWeekConfirm, setShowNextWeekConfirm] = useState(false);
   const [wildCardWorkout, setWildCardWorkout] = useState(null);
+  const [viewSessionId, setViewSessionId] = useState(null);
+  const [editingCompletedSession, setEditingCompletedSession] = useState(false);
+
+  const viewedSession = (payload.sessions || []).find(session => session.id === viewSessionId) || null;
 
   const week = payload.week || 1;
   const activeWorkout = PROGRAM.find(w => w.id === workoutId) || (workoutId === "E" ? wildCardWorkout : null);
@@ -555,12 +559,33 @@ export default function App() {
     const nextWeekNumber = week + 1;
     const supersetOrder = { ...(payload.supersetOrder || {}) };
     const coreOrder = { ...(payload.coreOrder || {}) };
-    PROGRAM.forEach(workout => {
-      supersetOrder['w' + nextWeekNumber + '-' + workout.id] = [0, 1, 2, 3].sort(() => Math.random() - .5);
-      coreOrder["w" + nextWeekNumber + "-" + workout.id] = seededShuffle(availableCoreIndices(), "core-" + person + "-" + nextWeekNumber + "-" + workout.id);
-    });
+    const weekAlreadyExists = (payload.sessions || []).some(session => session.week === nextWeekNumber) || PROGRAM.some(workout => supersetOrder['w' + nextWeekNumber + '-' + workout.id]);
+    if (!weekAlreadyExists) {
+      PROGRAM.forEach(workout => {
+        supersetOrder['w' + nextWeekNumber + '-' + workout.id] = seededShuffle([0, 1, 2, 3], "superset-" + person + "-" + nextWeekNumber + "-" + workout.id);
+        coreOrder["w" + nextWeekNumber + "-" + workout.id] = seededShuffle(availableCoreIndices(), "core-" + person + "-" + nextWeekNumber + "-" + workout.id);
+      });
+    }
     save({ ...payload, week: nextWeekNumber, supersetOrder, coreOrder, done: {}, coreDone: {} });
     setShowNextWeekConfirm(false);
+  }
+
+  function openCompletedWorkout(session) {
+    setViewSessionId(session.id);
+    setEditingCompletedSession(false);
+    setScreen("completed-workout");
+  }
+
+  function updateCompletedWeight(sessionId, exerciseIndex, pairIndex, value) {
+    const sessions = (payload.sessions || []).map(session => session.id !== sessionId ? session : {
+      ...session,
+      exerciseSnapshot: (session.exerciseSnapshot || []).map((pair, pi) => pi !== pairIndex ? pair : pair.map((item, ei) => ei !== exerciseIndex ? item : { ...item, weight: value }))
+    });
+    const weights = { ...(payload.weights || {}) };
+    const session = sessions.find(item => item.id === sessionId);
+    const item = session?.exerciseSnapshot?.[pairIndex]?.[exerciseIndex];
+    if (item) weights[item.name] = value;
+    save({ ...payload, sessions, weights });
   }
 
   function deleteWorkout(sessionId) {
@@ -647,8 +672,8 @@ export default function App() {
       {startedAt && workoutId && <div className="resume-workout-wrap"><button className="resume-workout" onClick={() => setScreen("workout")}><span><strong>Resume {activeWorkout?.name || "workout"}</strong><small>In-progress workout · saved on this device</small></span><ArrowRight size={18} strokeWidth={2}/></button><button className="discard-workout" onClick={discardWorkout}>Discard workout</button></div>}
       <section className="workout-list">{orderedWorkouts.map(w => {
         const done = payload.sessions.find(s => s.workoutId === w.id && s.week === week);
-        return <button className={`workout-card ${done ? "is-complete" : ""}`} key={w.id} disabled={Boolean(startedAt)} onClick={() => startWorkout(w.id)}>
-          <span className="workout-letter">{done ? <Check size={20}/> : w.id}</span><span className="workout-info"><strong>{w.name}</strong><small>{done ? `Completed · ${new Date(done.completedAt).toLocaleDateString()}` : w.focus}</small></span><span className="workout-arrow">{done ? <Check size={18} strokeWidth={2.5}/> : <ArrowRight size={18} strokeWidth={2}/>}</span>
+        return <button className={`workout-card ${done ? "is-complete" : ""}`} key={w.id} disabled={Boolean(startedAt)} onClick={() => done ? openCompletedWorkout(done) : startWorkout(w.id)}>
+          <span className="workout-letter">{done ? <Check size={20}/> : w.id}</span><span className="workout-info"><strong>{w.name}</strong><small>{done ? `Completed · ${new Date(done.completedAt).toLocaleDateString()} · View details` : w.focus}</small></span><span className="workout-arrow">{done ? <Check size={18} strokeWidth={2.5}/> : <ArrowRight size={18} strokeWidth={2}/>}</span>
         </button>;
       })}</section>
       <div className="wild-card-section">
@@ -658,7 +683,11 @@ export default function App() {
       </div>
       <div className="week-navigation">
         <button className="previous-week-button" onClick={previousWeek} disabled={week <= 1}>← Previous week</button>
-        <button className="next-week-button" onClick={() => setShowNextWeekConfirm(true)}><RotateCcw size={15}/> Start week {week+1}</button>
+        <button className="next-week-button" onClick={() => {
+          const next = week + 1;
+          const exists = (payload.sessions || []).some(session => session.week === next) || PROGRAM.some(workout => payload.supersetOrder?.['w' + next + '-' + workout.id]);
+          if (exists) nextWeek(); else setShowNextWeekConfirm(true);
+        }}><RotateCcw size={15}/> {((payload.sessions || []).some(session => session.week === week + 1) || PROGRAM.some(workout => payload.supersetOrder?.['w' + (week + 1) + '-' + workout.id])) ? `Go to week ${week+1}` : `Start week ${week+1}`}</button>
       </div>
       {showNextWeekConfirm && <div className="modal-backdrop" role="presentation" onClick={() => setShowNextWeekConfirm(false)}>
         <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="next-week-title" onClick={e => e.stopPropagation()}>
@@ -718,6 +747,12 @@ export default function App() {
         })}
         {!payload.sessions?.length && <p className="history-empty">Your completed workouts will show up here.</p>}
       </section>
+    </> : screen === "completed-workout" && viewedSession ? <>
+      <button className="back-button" onClick={() => { setEditingCompletedSession(false); setViewSessionId(null); setScreen("home"); }}>← Back to week {viewedSession.week}</button>
+      <section className="greeting workout-heading"><div><div className="eyebrow">COMPLETED WORKOUT · WEEK {viewedSession.week}</div><h2>{viewedSession.workoutName || PROGRAM.find(w => w.id === viewedSession.workoutId)?.name || "Workout"}</h2><p>Completed {new Date(viewedSession.completedAt).toLocaleDateString([], {month:"long",day:"numeric",year:"numeric"})} · {new Date(viewedSession.completedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</p></div></section>
+      <div className="completed-session-toolbar"><span className="muted-label">{editingCompletedSession ? "Editing recorded weights" : "Read-only workout record"}</span><button className="rotation-toggle" onClick={() => setEditingCompletedSession(value => !value)}>{editingCompletedSession ? "Done editing" : "Edit weights"}</button></div>
+      <section className="superset-list">{(viewedSession.exerciseSnapshot || []).map((pair, pairIndex) => <article className="superset-card" key={pairIndex}><header><div className="superset-heading-copy"><span className="eyebrow">SUPERSET {pairIndex + 1}{pairIndex === 3 ? " · BONUS" : ""}</span><span className="pair-progress-label">{pair.every(item => item.completed) ? "Pair complete" : "Recorded"}</span></div></header>{pair.map((item, exerciseIndex) => <div className="exercise-row" key={item.name}><div className="exercise-name"><strong>{item.name}</strong><small>{item.detail}</small></div><label className="weight-input">{editingCompletedSession ? <input aria-label={item.name + " recorded weight in pounds"} inputMode="decimal" placeholder="—" value={item.weight || ""} onChange={e => updateCompletedWeight(viewedSession.id, exerciseIndex, pairIndex, e.target.value)}/> : <strong>{item.weight || "—"}</strong>}<span>lb</span></label><ExerciseGuide name={item.name}/></div>)}</article>)}</section>
+      {viewedSession.coreSnapshot?.length > 0 && <section className="core-break"><div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE</span>{viewedSession.coreSnapshot.map(core => <p key={core.name}><strong>{core.name}</strong><small>{core.prescription} · {core.status}</small></p>)}</div></section>}
     </> : activeWorkout && <>
       <button className="back-button" onClick={() => setScreen("home")}>← All workouts</button>
       <section className="greeting workout-heading"><div><div className="eyebrow">WORKOUT {activeWorkout.id} · WEEK {week}</div><h2>{activeWorkout.name}</h2><p>{activeWorkout.focus}</p></div></section>
