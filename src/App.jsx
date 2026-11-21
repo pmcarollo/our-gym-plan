@@ -632,6 +632,22 @@ export default function App() {
     setScreen("completed-workout");
   }
 
+  function updateCompletedExercise(sessionId, pairIndex, exerciseIndex, patch) {
+    const sessions = (payload.sessions || []).map(session => session.id !== sessionId ? session : {
+      ...session,
+      exerciseSnapshot: (session.exerciseSnapshot || []).map((pair, pi) => pi !== pairIndex ? pair : pair.map((item, ei) => ei !== exerciseIndex ? item : { ...item, ...patch }))
+    });
+    save({ ...payload, sessions });
+  }
+
+  function updateCompletedCore(sessionId, coreName, status) {
+    const sessions = (payload.sessions || []).map(session => session.id !== sessionId ? session : {
+      ...session,
+      coreSnapshot: (session.coreSnapshot || []).map(item => item.name === coreName ? { ...item, status } : item)
+    });
+    save({ ...payload, sessions });
+  }
+
   function updateCompletedWeight(sessionId, exerciseIndex, pairIndex, value) {
     const sessions = (payload.sessions || []).map(session => session.id !== sessionId ? session : {
       ...session,
@@ -735,7 +751,7 @@ export default function App() {
       <section className="workout-list">{orderedWorkouts.map(w => {
         const done = payload.sessions.find(s => s.workoutId === w.id && s.week === week);
         return <button className={`workout-card ${done ? "is-complete" : ""}`} key={w.id} disabled={Boolean(startedAt)} onClick={() => done ? openCompletedWorkout(done) : startWorkout(w.id)}>
-          <span className="workout-letter">{done ? <Check size={20}/> : w.id}</span><span className="workout-info"><strong>{w.name}</strong><small>{done ? `Completed · ${new Date(done.completedAt).toLocaleDateString()} · View details` : w.focus}</small></span><span className="workout-arrow">{done ? <Check size={18} strokeWidth={2.5}/> : <ArrowRight size={18} strokeWidth={2}/>}</span>
+          <span className="workout-letter">{done ? <Check size={20}/> : w.id}</span><span className="workout-info"><strong>{w.name}</strong><small>{done ? `Completed · ${new Date(done.completedAt).toLocaleDateString()} · View workout & Strava export` : w.focus}</small></span><span className="workout-arrow">{done ? <Check size={18} strokeWidth={2.5}/> : <ArrowRight size={18} strokeWidth={2}/>}</span>
         </button>;
       })}</section>
       <div className="wild-card-section">
@@ -794,7 +810,7 @@ export default function App() {
               <summary><span>Recorded weights</span><span>{recordedWeights.length ? `${recordedWeights.length} logged` : "None logged"}</span></summary>
               {recordedWeights.length ? recordedWeights.map(item => <div className="history-exercise-row" key={item.name}><span>{item.name}</span><strong>{item.weight} lb</strong></div>) : <p className="history-no-weights">No weights were recorded for this session.</p>}
             </details>
-            <button className="history-strava-export" onClick={() => copyStravaWorkout(session)}><ExternalLink size={15}/>{stravaCopiedId === session.id ? "Copied!" : "Copy for Strava"}</button>
+            <button className="history-edit-workout" onClick={() => openCompletedWorkout(session)}><Dumbbell size={15}/> Edit workout</button>\n            <button className="history-strava-export" onClick={() => copyStravaWorkout(session)}><ExternalLink size={15}/>{stravaCopiedId === session.id ? "Copied!" : "Copy for Strava"}</button>
             <button className="history-delete" onClick={() => deleteWorkout(session.id)}>Delete workout</button>
           </article>;
         })}
@@ -803,9 +819,9 @@ export default function App() {
     </> : screen === "completed-workout" && viewedSession ? <>
       <button className="back-button" onClick={() => { setEditingCompletedSession(false); setViewSessionId(null); setScreen("home"); }}>← Back to week {viewedSession.week}</button>
       <section className="greeting workout-heading"><div><div className="eyebrow">COMPLETED WORKOUT · WEEK {viewedSession.week}</div><h2>{viewedSession.workoutName || PROGRAM.find(w => w.id === viewedSession.workoutId)?.name || "Workout"}</h2><p>Completed {new Date(viewedSession.completedAt).toLocaleDateString([], {month:"long",day:"numeric",year:"numeric"})} · {new Date(viewedSession.completedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</p></div></section>
-      <div className="completed-session-toolbar"><span className="muted-label">{editingCompletedSession ? "Editing recorded weights" : "Read-only workout record"}</span><button className="rotation-toggle" onClick={() => setEditingCompletedSession(value => !value)}>{editingCompletedSession ? "Done editing" : "Edit weights"}</button></div>
-      <section className="superset-list">{(viewedSession.exerciseSnapshot || []).map((pair, pairIndex) => <article className="superset-card" key={pairIndex}><header><div className="superset-heading-copy"><span className="eyebrow">SUPERSET {pairIndex + 1}{pairIndex === 3 ? " · BONUS" : ""}</span><span className="pair-progress-label">{pair.every(item => item.completed) ? "Pair complete" : "Recorded"}</span></div></header>{pair.map((item, exerciseIndex) => <div className="exercise-row" key={item.name}><div className="exercise-name"><strong>{item.name}</strong><small>{item.detail}</small></div><label className="weight-input">{editingCompletedSession ? <input aria-label={item.name + " recorded weight in pounds"} inputMode="decimal" placeholder="—" value={item.weight || ""} onChange={e => updateCompletedWeight(viewedSession.id, exerciseIndex, pairIndex, e.target.value)}/> : <strong>{item.weight || "—"}</strong>}<span>lb</span></label><ExerciseGuide name={item.name}/></div>)}</article>)}</section>
-      {viewedSession.coreSnapshot?.length > 0 && <section className="core-break"><div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE</span>{viewedSession.coreSnapshot.map(core => <p key={core.name}><strong>{core.name}</strong><small>{core.prescription} · {core.status}</small></p>)}</div></section>}
+      <div className="completed-session-toolbar"><span className="muted-label">{editingCompletedSession ? "Editing exercises, completion & weights" : "Read-only workout record"}</span><button className="rotation-toggle" onClick={() => setEditingCompletedSession(value => !value)}>{editingCompletedSession ? "Done editing" : "Edit workout"}</button></div>
+      <section className="superset-list">{(viewedSession.exerciseSnapshot || []).map((pair, pairIndex) => <article className="superset-card" key={pairIndex}><header><div className="superset-heading-copy"><span className="eyebrow">SUPERSET {pairIndex + 1}{pairIndex === 3 ? " · BONUS" : ""}</span><span className="pair-progress-label">{pair.every(item => item.completed) ? "Pair complete" : "Recorded"}</span></div></header>{pair.map((item, exerciseIndex) => <div className="exercise-row" key={item.name}><div className="exercise-name"><strong>{item.name}</strong><small>{item.detail}</small>{editingCompletedSession && <button className={`completed-exercise-toggle ${item.completed ? "is-complete" : ""}`} onClick={() => updateCompletedExercise(viewedSession.id, pairIndex, exerciseIndex, { completed: !item.completed })}>{item.completed ? <><Check size={13}/> Completed</> : "Mark completed"}</button>}</div><label className="weight-input">{editingCompletedSession ? <input aria-label={item.name + " recorded weight in pounds"} inputMode="decimal" placeholder="—" value={item.weight || ""} onChange={e => updateCompletedWeight(viewedSession.id, exerciseIndex, pairIndex, e.target.value)}/> : <strong>{item.weight || "—"}</strong>}<span>lb</span></label><ExerciseGuide name={item.name}/></div>)}</article>)}</section>
+      {viewedSession.coreSnapshot?.length > 0 && <section className="core-break"><div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE</span>{viewedSession.coreSnapshot.map(core => <p key={core.name}><strong>{core.name}</strong><small>{core.prescription} · {core.status}</small>{editingCompletedSession && <span className="completed-core-actions"><button className={core.status === "done" ? "selected" : ""} onClick={() => updateCompletedCore(viewedSession.id, core.name, "done")}>Done</button><button className={core.status === "skipped" ? "selected" : ""} onClick={() => updateCompletedCore(viewedSession.id, core.name, "skipped")}>Skip</button></span>}</p>)}</div></section>}
     </> : activeWorkout && <>
       <button className="back-button" onClick={() => setScreen("home")}>← All workouts</button>
       <section className="greeting workout-heading"><div><div className="eyebrow">WORKOUT {activeWorkout.id} · WEEK {week}</div><h2>{activeWorkout.name}</h2><p>{activeWorkout.focus}</p></div></section>
