@@ -265,7 +265,7 @@ export default function App() {
   const [workoutTime, setWorkoutTime] = useState(currentTimeKey());
   const [rest, setRest] = useState(0);
   const [expandedBonus, setExpandedBonus] = useState(false);
-  const [showNextWeekConfirm, setShowNextWeekConfirm] = useState(false);
+  const [activeModal, setActiveModal] = useState(null);
   const [wildCardWorkout, setWildCardWorkout] = useState(null);
   const [viewSessionId, setViewSessionId] = useState(null);
   const [editingCompletedSession, setEditingCompletedSession] = useState(false);
@@ -428,7 +428,10 @@ export default function App() {
   }
 
   function discardWorkout() {
-    if (!window.confirm("Discard this in-progress workout? Weights entered during this workout will be cleared, while weights from completed workouts will be kept.")) return;
+    setActiveModal({ eyebrow: "CURRENT WORKOUT", title: "Discard this workout?", description: "Your in-progress workout and weights entered during this session will be cleared. Completed workout history and previously saved weights will stay intact.", confirmLabel: "Discard workout", destructive: true, onConfirm: discardWorkoutNow });
+  }
+
+  function discardWorkoutNow() {
     localStorage.removeItem(draftKey(person));
     const done = { ...(payload.done || {}) };
     Object.keys(done).filter(key => key.startsWith(`${workoutId}-p`)).forEach(key => delete done[key]);
@@ -569,7 +572,7 @@ export default function App() {
       });
     }
     save({ ...payload, week: nextWeekNumber, supersetOrder, coreOrder, done: {}, coreDone: {} });
-    setShowNextWeekConfirm(false);
+    setActiveModal(null);
   }
 
   function openCompletedWorkout(session) {
@@ -593,10 +596,17 @@ export default function App() {
   function deleteWorkout(sessionId) {
     const session = (payload.sessions || []).find(item => item.id === sessionId);
     if (!session) return;
-    const label = PROGRAM.find(item => item.id === session.workoutId)?.name || (session.workoutId === "E" ? "Wild Card" : "this workout");
-    if (!window.confirm(`Delete ${label} from your workout history? This cannot be undone.`)) return;
-    const sessions = (payload.sessions || []).filter(item => item.id !== sessionId);
-    save({ ...payload, sessions });
+    const label = session.workoutName || PROGRAM.find(item => item.id === session.workoutId)?.name || (session.workoutId === "E" ? "Wild Card" : "this workout");
+    setActiveModal({ eyebrow: "WORKOUT HISTORY", title: "Delete this workout?", description: "This will permanently remove " + label + " from your workout history. This action can't be undone.", confirmLabel: "Delete workout", destructive: true, onConfirm: () => {
+      const sessions = (payload.sessions || []).filter(item => item.id !== sessionId);
+      save({ ...payload, sessions });
+    } });
+  }
+
+  function confirmModalAction() {
+    const action = activeModal?.onConfirm;
+    setActiveModal(null);
+    action?.();
   }
 
   function updateWeight(name, value) {
@@ -687,20 +697,10 @@ export default function App() {
         <button className="next-week-button" onClick={() => {
           const next = week + 1;
           const exists = (payload.sessions || []).some(session => session.week === next) || PROGRAM.some(workout => payload.supersetOrder?.['w' + next + '-' + workout.id]);
-          if (exists) nextWeek(); else setShowNextWeekConfirm(true);
+          if (exists) nextWeek(); else setActiveModal({ eyebrow: "MOVE FORWARD", title: "Start week " + (week + 1) + "?", description: "This resets the current workout checkmarks and shuffles the superset and core order for the new week. Your completed workout history and saved weights stay intact.", confirmLabel: "Start week " + (week + 1), onConfirm: nextWeek });
         }}><RotateCcw size={15}/> {((payload.sessions || []).some(session => session.week === week + 1) || PROGRAM.some(workout => payload.supersetOrder?.['w' + (week + 1) + '-' + workout.id])) ? `Go to week ${week+1}` : `Start week ${week+1}`}</button>
       </div>
-      {showNextWeekConfirm && <div className="modal-backdrop" role="presentation" onClick={() => setShowNextWeekConfirm(false)}>
-        <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="next-week-title" onClick={e => e.stopPropagation()}>
-          <div className="eyebrow">MOVE FORWARD</div>
-          <h3 id="next-week-title">Start week {week+1}?</h3>
-          <p>This resets the current workout checkmarks and shuffles the superset and core order for the new week. Your completed workout history and saved weights stay intact.</p>
-          <div className="modal-actions">
-            <button className="modal-cancel" onClick={() => setShowNextWeekConfirm(false)}>Cancel</button>
-            <button className="modal-confirm" onClick={nextWeek}>Start week {week+1}</button>
-          </div>
-        </section>
-      </div>}
+
       <div className="footer-note"><Clock3 size={14}/> Workout cutoff · 6:50 AM Eastern</div>
       {busy && <p className="muted-label">Syncing…</p>}
     </> : screen === "settings" ? <>
@@ -794,6 +794,17 @@ export default function App() {
       <button className="primary-button complete-button" onClick={completeWorkout}> <Check size={18}/> Complete workout</button>
       <p className="small-note centered">You can finish after three supersets. Bonus work is always optional.</p>
     </>}
+    {activeModal && <div className="modal-backdrop" role="presentation" onClick={() => setActiveModal(null)}>
+      <section className={`confirm-modal ${activeModal.destructive ? "confirm-modal-destructive" : ""}`} role="dialog" aria-modal="true" aria-labelledby="app-modal-title" aria-describedby="app-modal-description" onClick={e => e.stopPropagation()}>
+        <div className="eyebrow">{activeModal.eyebrow}</div>
+        <h3 id="app-modal-title">{activeModal.title}</h3>
+        <p id="app-modal-description">{activeModal.description}</p>
+        <div className="modal-actions">
+          <button className="modal-cancel" onClick={() => setActiveModal(null)}>Cancel</button>
+          <button className={`modal-confirm ${activeModal.destructive ? "modal-confirm-destructive" : ""}`} onClick={confirmModalAction}>{activeModal.confirmLabel}</button>
+        </div>
+      </section>
+    </div>}
     {error && <p className="error">{error}</p>}
   </main>;
 }
