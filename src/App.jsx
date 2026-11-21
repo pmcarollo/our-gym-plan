@@ -460,6 +460,9 @@ export default function App() {
       const coreOrder = { ...(payload.coreOrder || {}), [coreOrderKey]: seededShuffle(availableCore, "core-" + person + "-" + week + "-" + id) };
       save({ ...payload, coreOrder });
     }
+    const done = { ...(payload.done || {}) };
+    Object.keys(done).filter(key => key.startsWith(`${id}-p`)).forEach(key => delete done[key]);
+    save({ ...payload, done });
     setWildCardWorkout(null);
     setWorkoutId(id);
     setWorkoutDate(todayKey());
@@ -524,7 +527,8 @@ export default function App() {
     const sessions = [...(payload.sessions || []), {
       id: crypto.randomUUID(), workoutId, workoutName: activeWorkout.name, week, profile: person,
       startedAt: startedAt || completedAt, completedAt, workoutDate,
-      bonusDone: Boolean(payload.done?.[exerciseKey(workoutId, (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], 0)] || payload.done?.[exerciseKey(workoutId, (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], 1)]),
+      bonusPerformed: activeWorkout.pairs[(payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3]].every((_, exerciseIndex) => Boolean(payload.done?.[exerciseKey(workoutId, (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], exerciseIndex)])),
+      bonusDone: activeWorkout.pairs[(payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3]].every((_, exerciseIndex) => Boolean(payload.done?.[exerciseKey(workoutId, (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], exerciseIndex)])),
       coreSnapshot: (payload.coreOrder?.['w' + week + '-' + workoutId] || [0,1,2,3,4,5,6,7]).slice(0,2).map((coreIndex, displayIndex) => {
         const [name, prescription] = CORE_BREAKS[coreIndex];
         return { afterSuperset: displayIndex + 1, name, prescription, status: payload.coreStatus?.[`${startedAt}-${name}`] || "not recorded" };
