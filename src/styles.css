@@ -1085,3 +1085,24 @@ button, input, select, textarea { font-family: inherit; }
   .completed-session-toolbar .muted-label { flex-basis: 100%; }
   .completed-session-toolbar .rotation-toggle { width: 100%; margin-left: 0; }
 }
+
+
+/* Strava export is the primary action on each completed history card. */
+.history-strava-export {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 43px;
+  margin-top: 12px;
+  padding: 10px 13px;
+  border: 1px solid #cbd9c7;
+  border-radius: 11px;
+  background: #edf3e8;
+  color: #234c3c;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.history-strava-export:active { transform: scale(.99); }
