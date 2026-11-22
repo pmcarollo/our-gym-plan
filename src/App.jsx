@@ -292,7 +292,6 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [now, setNow] = useState(new Date());
   const [startedAt, setStartedAt] = useState(null);
   const [workoutDate, setWorkoutDate] = useState(todayKey());
   const [workoutTime, setWorkoutTime] = useState(currentTimeKey());
@@ -321,18 +320,6 @@ export default function App() {
     ? activePairOrder.reduce((count, pairIndex) => count + activeWorkout.pairs[pairIndex].filter((_, exerciseIndex) => payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]).length, 0)
     : 0;
   const completedThisWeek = useMemo(() => (payload.sessions || []).filter(s => s.week === week && s.completedAt).length, [payload, week]);
-
-  useEffect(() => {
-    const refreshClock = () => setNow(new Date());
-    const id = setInterval(refreshClock, 1000);
-    window.addEventListener("focus", refreshClock);
-    document.addEventListener("visibilitychange", refreshClock);
-    return () => {
-      clearInterval(id);
-      window.removeEventListener("focus", refreshClock);
-      document.removeEventListener("visibilitychange", refreshClock);
-    };
-  }, []);
 
   useEffect(() => {
     if (!rest) return;
@@ -371,21 +358,6 @@ export default function App() {
       localStorage.setItem(draftKey(person), JSON.stringify({ workoutId, startedAt, workoutDate, workoutTime, workoutSnapshot: wildCardWorkout, currentWorkoutWeights }));
     }
   }, [person, workoutId, startedAt, workoutDate, workoutTime, wildCardWorkout, currentWorkoutWeights]);
-
-  useEffect(() => {
-    if (!startedAt || !activeWorkout || !person) return;
-    const eastern = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(now);
-    const [h, m] = eastern.split(":").map(Number);
-    const minuteOfDay = h * 60 + m;
-    const warningKey = `fiveMinuteWarning-${person}-${startedAt}`;
-    // The gym cutoff is 6:50 AM Eastern. Use a five-minute window rather
-    // than a single second so timer ticks, background throttling, or reloads
-    // cannot cause the warning to be missed.
-    if (minuteOfDay >= 6 * 60 + 45 && minuteOfDay < 6 * 60 + 50 && !localStorage.getItem(warningKey)) {
-      localStorage.setItem(warningKey, "shown");
-      setNotice("5 MINUTES LEFT · Gym closes at 6:50 AM. Finish your current set and start wrapping up.");
-    }
-  }, [now, startedAt, activeWorkout, person]);
 
   async function loadProfile() {
     try {
@@ -736,7 +708,7 @@ export default function App() {
 
   if (!person) return <main className="app-shell auth-shell"><Brand /><section className="welcome-panel">
     <div className="eyebrow">WHO'S WORKING OUT?</div><h2>Choose your profile.</h2><p>We'll remember your choice on this device.</p>
-    <div className="profile-options">{["Paul", "Chris"].map(name => <button className="profile-button" key={name} onClick={() => choosePerson(name)}>{name}<ArrowRight size={17} strokeWidth={2}/></button>)}</div>
+    <div className="profile-options">{[["Paul", "Profile 1"], ["Chris", "Profile 2"]].map(([profileId, label]) => <button className="profile-button" key={profileId} onClick={() => choosePerson(profileId)}>{label}<ArrowRight size={17} strokeWidth={2}/></button>)}</div>
     {error && <p className="error">{error}</p>}
   </section></main>;
 
@@ -757,7 +729,7 @@ export default function App() {
       <div className="wild-card-section">
         <div className="wild-card-heading"><div><div className="eyebrow">WHEN YOU WANT SOMETHING DIFFERENT</div><strong>Wild Card</strong><small>Fresh push, pull, legs and finisher combinations, drawn from a separate exercise pool.</small></div><span className="wild-card-spark">✦</span></div>
         <button className={`wild-card-button ${wildCardCompleted ? "is-complete" : ""}`} disabled={Boolean(startedAt)} onClick={startWildCardWorkout}><span>{wildCardCompleted ? "Generate another Wild Card" : "Generate a Wild Card workout"}</span><ArrowRight size={19} strokeWidth={2}/></button>
-        <p className="wild-card-note">Shared weekly workout for Paul + Chris · counts toward your 4-workout goal · extra sessions earn bonus credit</p>
+        <p className="wild-card-note">Shared weekly workout · counts toward your 4-workout goal · extra sessions earn bonus credit</p>
       </div>
       <div className="week-navigation">
         <button className="previous-week-button" onClick={previousWeek} disabled={week <= 1}>← Previous week</button>
@@ -768,7 +740,6 @@ export default function App() {
         }}><RotateCcw size={15}/> {((payload.sessions || []).some(session => session.week === week + 1) || PROGRAM.some(workout => payload.supersetOrder?.['w' + (week + 1) + '-' + workout.id])) ? `Go to week ${week+1}` : `Start week ${week+1}`}</button>
       </div>
 
-      <div className="footer-note"><Clock3 size={14}/> Workout cutoff · 6:50 AM Eastern</div>
       {busy && <p className="muted-label">Syncing…</p>}
     </> : screen === "settings" ? <>
       <button className="back-button" onClick={() => setScreen("home")}>← Back to workouts</button>
@@ -776,7 +747,7 @@ export default function App() {
       <button className="settings-library-card" onClick={() => setScreen("library")}><span className="settings-library-icon"><Library size={22}/></span><span><strong>Exercise Library</strong><small>{EXERCISE_LIBRARY.length} exercises · browse by muscle group, workout and training type</small></span><ArrowRight size={19}/></button>
       <div className="settings-note">The library brings together regular workouts, bonus movements, Wild Card options and optional core exercises.</div>
       <div className="settings-section-label">APP & PROFILE</div>
-      <button className="settings-action-card" onClick={() => choosePerson(person === "Test" ? "Paul" : person === "Paul" ? "Chris" : "Paul")}><span className="settings-action-icon"><RefreshCw size={19}/></span><span><strong>Switch profile</strong><small>Currently using {person} · switch to {person === "Test" ? "Paul" : person === "Paul" ? "Chris" : "Paul"}</small></span><ArrowRight size={19}/></button>
+      <button className="settings-action-card" onClick={() => choosePerson(person === "Test" ? "Paul" : person === "Paul" ? "Chris" : "Paul")}><span className="settings-action-icon"><RefreshCw size={19}/></span><span><strong>Switch profile</strong><small>Currently using {person === "Test" ? "Test profile" : person === "Paul" ? "Profile 1" : "Profile 2"} · switch to {person === "Test" ? "Profile 1" : person === "Paul" ? "Profile 2" : "Profile 1"}</small></span><ArrowRight size={19}/></button>
       <button className="settings-action-card" onClick={enterTestProfile}><span className="settings-action-icon"><Dumbbell size={19}/></span><span><strong>{person === "Test" ? "Test profile active" : "Open test profile"}</strong><small>Separate local-only workouts, weights and history · only on this device</small></span><ArrowRight size={19}/></button>
       <button className="settings-action-card" onClick={logout}><span className="settings-action-icon"><Lock size={19}/></span><span><strong>Lock app</strong><small>Sign out and return to the unlock screen</small></span><ArrowRight size={19}/></button>
     </> : screen === "library" ? <>
