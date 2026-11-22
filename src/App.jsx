@@ -708,7 +708,7 @@ export default function App() {
 
   if (!person) return <main className="app-shell auth-shell"><Brand /><section className="welcome-panel">
     <div className="eyebrow">WHO'S WORKING OUT?</div><h2>Choose your profile.</h2><p>We'll remember your choice on this device.</p>
-    <div className="profile-options">{[["Paul", "Profile 1"], ["Chris", "Profile 2"]].map(([profileId, label]) => <button className="profile-button" key={profileId} onClick={() => choosePerson(profileId)}>{label}<ArrowRight size={17} strokeWidth={2}/></button>)}</div>
+    <div className="profile-options">{["Paul", "Chris"].map(name => <button className="profile-button" key={name} onClick={() => choosePerson(name)}>{name}<ArrowRight size={17} strokeWidth={2}/></button>)}</div>
     {error && <p className="error">{error}</p>}
   </section></main>;
 
@@ -747,7 +747,7 @@ export default function App() {
       <button className="settings-library-card" onClick={() => setScreen("library")}><span className="settings-library-icon"><Library size={22}/></span><span><strong>Exercise Library</strong><small>{EXERCISE_LIBRARY.length} exercises · browse by muscle group, workout and training type</small></span><ArrowRight size={19}/></button>
       <div className="settings-note">The library brings together regular workouts, bonus movements, Wild Card options and optional core exercises.</div>
       <div className="settings-section-label">APP & PROFILE</div>
-      <button className="settings-action-card" onClick={() => choosePerson(person === "Test" ? "Paul" : person === "Paul" ? "Chris" : "Paul")}><span className="settings-action-icon"><RefreshCw size={19}/></span><span><strong>Switch profile</strong><small>Currently using {person === "Test" ? "Test profile" : person === "Paul" ? "Profile 1" : "Profile 2"} · switch to {person === "Test" ? "Profile 1" : person === "Paul" ? "Profile 2" : "Profile 1"}</small></span><ArrowRight size={19}/></button>
+      <button className="settings-action-card" onClick={() => choosePerson(person === "Test" ? "Paul" : person === "Paul" ? "Chris" : "Paul")}><span className="settings-action-icon"><RefreshCw size={19}/></span><span><strong>Switch profile</strong><small>Currently using {person} · switch to {person === "Test" ? "Paul" : person === "Paul" ? "Chris" : "Paul"}</small></span><ArrowRight size={19}/></button>
       <button className="settings-action-card" onClick={enterTestProfile}><span className="settings-action-icon"><Dumbbell size={19}/></span><span><strong>{person === "Test" ? "Test profile active" : "Open test profile"}</strong><small>Separate local-only workouts, weights and history · only on this device</small></span><ArrowRight size={19}/></button>
       <button className="settings-action-card" onClick={logout}><span className="settings-action-icon"><Lock size={19}/></span><span><strong>Lock app</strong><small>Sign out and return to the unlock screen</small></span><ArrowRight size={19}/></button>
     </> : screen === "library" ? <>
