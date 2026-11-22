@@ -686,6 +686,7 @@ export default function App() {
     choosePerson("Test");
   }
   const wildCardCompleted = payload.sessions?.some(s => s.workoutId === "E" && s.week === week && s.completedAt);
+  const now = new Date();
   const easternTime = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "numeric", minute: "2-digit", hour12: true }).format(now);
   const easternHour = Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", hour: "2-digit", hourCycle: "h23" }).format(now));
   const timeGreeting = easternHour < 12 ? "Morning" : easternHour < 17 ? "Afternoon" : "Evening";
