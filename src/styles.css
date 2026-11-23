@@ -1183,3 +1183,9 @@ button, input, select, textarea { font-family: inherit; }
 .tracker-modal h3 { margin-top:10px; }
 .tracker-modal .modal-actions { display:grid; grid-template-columns:1fr 1fr; }
 .tracker-modal .modal-actions button { min-height:46px; }
+
+
+.history-exercise-group { padding:2px 0 8px; }
+.history-set-breakdown { display:grid; gap:5px; margin:4px 0 2px 12px; padding-left:11px; border-left:2px solid #e4eadf; }
+.history-set-row { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#788477; font-size:11px; }
+.history-set-row strong { color:#315d42; font-size:11px; font-weight:750; }
