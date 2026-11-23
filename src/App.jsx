@@ -310,10 +310,10 @@ export default function App() {
   const week = person === "Test" ? (payload.week || 1) : sharedProgram.week;
   const activeWorkout = PROGRAM.find(w => w.id === workoutId) || (workoutId === "E" ? wildCardWorkout : null);
   const activePairOrder = activeWorkout
-    ? (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0, 1, 2, 3]).slice(0, 3)
+    ? (sharedProgram.supersetOrder?.['w' + week + '-' + workoutId] || [0, 1, 2, 3]).slice(0, 3)
     : [];
   const totalRequiredExercises = activePairOrder.length * 2;
-  const bonusPairIndex = (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3];
+  const bonusPairIndex = (sharedProgram.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3];
   const completedBonusExercises = activeWorkout?.pairs?.[bonusPairIndex]
     ? activeWorkout.pairs[bonusPairIndex].filter((_, ei) => payload.done?.[exerciseKey(workoutId, bonusPairIndex, ei)]).length
     : 0;
@@ -367,6 +367,7 @@ export default function App() {
         const stored = localStorage.getItem(TEST_PROFILE_KEY);
         const testPayload = stored ? JSON.parse(stored) : emptyPayload();
         setPayload(testPayload && typeof testPayload === "object" ? testPayload : emptyPayload());
+        setSharedProgram({ week: testPayload.week || 1, supersetOrder: testPayload.supersetOrder || {}, coreOrder: testPayload.coreOrder || {}, disabledExercises: testPayload.disabledExercises || [], rotation: testPayload.rotation || {} });
       } else {
         const result = await api("load", { token, profile: person });
         const profile = result.profiles?.find(p => p.profile === person);
@@ -567,9 +568,9 @@ export default function App() {
     const sessions = [...(payload.sessions || []), {
       id: crypto.randomUUID(), workoutId, workoutName: activeWorkout.name, week, profile: person,
       startedAt: startedAt || completedAt, completedAt, workoutDate,
-      bonusPerformed: activeWorkout.pairs[(payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3]].every((_, exerciseIndex) => Boolean(payload.done?.[exerciseKey(workoutId, (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], exerciseIndex)])),
-      bonusDone: activeWorkout.pairs[(payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3]].every((_, exerciseIndex) => Boolean(payload.done?.[exerciseKey(workoutId, (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], exerciseIndex)])),
-      coreSnapshot: (payload.coreOrder?.['w' + week + '-' + workoutId] || [0,1,2,3,4,5,6,7]).slice(0,2).map((coreIndex, displayIndex) => {
+      bonusPerformed: activeWorkout.pairs[(sharedProgram.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3]].every((_, exerciseIndex) => Boolean(payload.done?.[exerciseKey(workoutId, (sharedProgram.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], exerciseIndex)])),
+      bonusDone: activeWorkout.pairs[(sharedProgram.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3]].every((_, exerciseIndex) => Boolean(payload.done?.[exerciseKey(workoutId, (sharedProgram.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], exerciseIndex)])),
+      coreSnapshot: (sharedProgram.coreOrder?.['w' + week + '-' + workoutId] || [0,1,2,3,4,5,6,7]).slice(0,2).map((coreIndex, displayIndex) => {
         const [name, prescription] = CORE_BREAKS[coreIndex];
         return { afterSuperset: displayIndex + 1, name, prescription, status: payload.coreStatus?.[`${startedAt}-${name}`] || "not recorded" };
       }),
@@ -696,7 +697,7 @@ export default function App() {
 
   const orderedWorkouts = PROGRAM;
   const filteredLibrary = EXERCISE_LIBRARY.filter(item => (libraryFilter === "All" || item.muscles.includes(libraryFilter)) && (librarySourceFilter === "All" || item.sources.includes(librarySourceFilter)) && (item.name.toLowerCase().includes(librarySearch.toLowerCase()) || item.muscles.join(" ").toLowerCase().includes(librarySearch.toLowerCase())));
-  const disabledExercises = payload.disabledExercises || [];
+  const disabledExercises = sharedProgram.disabledExercises || [];
 
   function toggleExerciseAvailability(name) {
     const isDisabled = disabledExercises.includes(name);
@@ -769,9 +770,9 @@ export default function App() {
         <button className="previous-week-button" onClick={previousWeek} disabled={week <= 1}>← Previous week</button>
         <button className="next-week-button" onClick={() => {
           const next = week + 1;
-          const exists = (payload.sessions || []).some(session => session.week === next) || PROGRAM.some(workout => payload.supersetOrder?.['w' + next + '-' + workout.id]);
+          const exists = (payload.sessions || []).some(session => session.week === next) || PROGRAM.some(workout => sharedProgram.supersetOrder?.['w' + next + '-' + workout.id]);
           if (exists) nextWeek(); else setActiveModal({ eyebrow: "MOVE FORWARD", title: "Start week " + (week + 1) + "?", description: "This resets the current workout checkmarks and shuffles the superset and core order for the new week. Your completed workout history and saved weights stay intact.", confirmLabel: "Start week " + (week + 1), onConfirm: nextWeek });
-        }}><RotateCcw size={15}/> {((payload.sessions || []).some(session => session.week === week + 1) || PROGRAM.some(workout => payload.supersetOrder?.['w' + (week + 1) + '-' + workout.id])) ? `Go to week ${week+1}` : `Start week ${week+1}`}</button>
+        }}><RotateCcw size={15}/> {((payload.sessions || []).some(session => session.week === week + 1) || PROGRAM.some(workout => sharedProgram.supersetOrder?.['w' + (week + 1) + '-' + workout.id])) ? `Go to week ${week+1}` : `Start week ${week+1}`}</button>
       </div>
 
       {busy && <p className="muted-label">Syncing…</p>}
@@ -839,11 +840,11 @@ export default function App() {
         <div className="live-progress-bottom"><span>{Math.round(totalRequiredExercises ? completedRequiredExercises / totalRequiredExercises * 100 : 0)}% required work</span><span>Bonus: {completedBonusExercises}/2</span></div>
       </section>
       <div className="workout-controls"><span className="muted-label workout-requirement">3 required supersets · 1 optional bonus</span><div className="workout-datetime"><div className="datetime-field"><span className="datetime-label">Workout date</span><input aria-label="Workout date" type="date" value={workoutDate} max={todayKey()} onChange={e => setWorkoutDate(e.target.value)} /></div><div className="datetime-field"><span className="datetime-label">Finish time</span><strong className="live-finish-time">{easternTime} Eastern</strong></div></div><span className="muted-label workout-started">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
-      <section className="superset-list">{(payload.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3]).slice(0,3).map((pairIndex,displayIndex) => {
+      <section className="superset-list">{(sharedProgram.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3]).slice(0,3).map((pairIndex,displayIndex) => {
         const pair = activeWorkout.pairs[pairIndex];
         const index = pairIndex;
         const complete = pair.every((_, ei) => payload.done?.[exerciseKey(workoutId,index,ei)]);
-        const coreIndex = (payload.coreOrder?.['w' + week + '-' + workoutId] || [0,1,2,3,4,5,6,7])[displayIndex];
+        const coreIndex = (sharedProgram.coreOrder?.['w' + week + '-' + workoutId] || [0,1,2,3,4,5,6,7])[displayIndex];
         const core = CORE_BREAKS[coreIndex];
         return <div className="superset-and-core" key={index}>
         <article className={`superset-card ${complete ? "pair-complete" : ""}`}>
