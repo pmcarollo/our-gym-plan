@@ -552,7 +552,9 @@ export default function App() {
     setWorkoutDate(todayKey());
     setWorkoutTime(currentTimeKey());
     setCurrentWorkoutWeights({});
+    setCurrentWorkoutSets({});
     setStartedAt(new Date().toISOString());
+    setTrackerModal(Boolean(payload.trackerPrefs?.enabled ?? true));
     setExpandedBonus(false);
     setNotice("");
     setScreen("workout");
@@ -596,9 +598,10 @@ export default function App() {
         const [name, prescription] = CORE_BREAKS[coreIndex];
         return { afterSuperset: displayIndex + 1, name, prescription, status: payload.coreStatus?.[`${startedAt}-${name}`] || "not recorded" };
       }),
-      exerciseSnapshot: activeWorkout.pairs.map((pair, pairIndex) => pair.map(([name, detail], exerciseIndex) => ({ name, detail, weight: currentWorkoutWeights[name] || "", sets: currentWorkoutSets[name]?.enabled ? currentWorkoutSets[name].sets : null, completed: Boolean(payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]) })))
+      exerciseSnapshot: activeWorkout.pairs.map((pair, pairIndex) => pair.map(([name, detail], exerciseIndex) => ({ name, detail, weight: currentWorkoutWeights[name] || "", sets: currentWorkoutSets[name]?.enabled ? currentWorkoutSets[name].sets : null, completed: currentWorkoutSets[name]?.enabled ? currentWorkoutSets[name].sets.some(set => set.completed) : Boolean(payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]) })))
     }];
-    const weights = { ...(payload.weights || {}), ...currentWorkoutWeights };
+    const setWeights = Object.fromEntries(Object.entries(currentWorkoutSets).filter(([,entry]) => entry.enabled).map(([name,entry]) => [name, [...entry.sets].reverse().find(set => set.completed && set.weight !== "")?.weight || currentWorkoutWeights[name] || ""]));
+    const weights = { ...(payload.weights || {}), ...currentWorkoutWeights, ...setWeights };
     save({ ...payload, sessions, weights });
     localStorage.removeItem(draftKey(person));
     setStartedAt(null);
