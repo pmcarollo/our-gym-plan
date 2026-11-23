@@ -304,6 +304,9 @@ export default function App() {
   const [editingCompletedSession, setEditingCompletedSession] = useState(false);
   const [stravaCopiedId, setStravaCopiedId] = useState(null);
   const [currentWorkoutWeights, setCurrentWorkoutWeights] = useState({});
+  const [currentWorkoutSets, setCurrentWorkoutSets] = useState({});
+  const [trackerModal, setTrackerModal] = useState(false);
+  const [trackerNameDraft, setTrackerNameDraft] = useState("");
 
   const viewedSession = (payload.sessions || []).find(session => session.id === viewSessionId) || null;
 
@@ -347,6 +350,7 @@ export default function App() {
       setWorkoutDate(draft.workoutDate || todayKey());
       setWorkoutTime(draft.workoutTime || currentTimeKey());
       setCurrentWorkoutWeights(draft.currentWorkoutWeights || {});
+      setCurrentWorkoutSets(draft.currentWorkoutSets || {});
       setScreen("workout");
     } catch {
       localStorage.removeItem(draftKey(person));
@@ -356,9 +360,9 @@ export default function App() {
   useEffect(() => {
     if (!person) return;
     if (startedAt && workoutId) {
-      localStorage.setItem(draftKey(person), JSON.stringify({ workoutId, startedAt, workoutDate, workoutTime, workoutSnapshot: wildCardWorkout, currentWorkoutWeights }));
+      localStorage.setItem(draftKey(person), JSON.stringify({ workoutId, startedAt, workoutDate, workoutTime, workoutSnapshot: wildCardWorkout, currentWorkoutWeights, currentWorkoutSets }));
     }
-  }, [person, workoutId, startedAt, workoutDate, workoutTime, wildCardWorkout, currentWorkoutWeights]);
+  }, [person, workoutId, startedAt, workoutDate, workoutTime, wildCardWorkout, currentWorkoutWeights, currentWorkoutSets]);
 
   async function loadProfile() {
     try {
@@ -511,7 +515,9 @@ export default function App() {
     setWorkoutDate(todayKey());
     setWorkoutTime(currentTimeKey());
     setCurrentWorkoutWeights({});
+    setCurrentWorkoutSets({});
     setStartedAt(new Date().toISOString());
+    setTrackerModal(Boolean(payload.trackerPrefs?.enabled ?? true));
     setExpandedBonus(false);
     setNotice("");
     setScreen("workout");
@@ -577,7 +583,7 @@ export default function App() {
         const [name, prescription] = CORE_BREAKS[coreIndex];
         return { afterSuperset: displayIndex + 1, name, prescription, status: payload.coreStatus?.[`${startedAt}-${name}`] || "not recorded" };
       }),
-      exerciseSnapshot: activeWorkout.pairs.map((pair, pairIndex) => pair.map(([name, detail], exerciseIndex) => ({ name, detail, weight: currentWorkoutWeights[name] || "", completed: Boolean(payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]) })))
+      exerciseSnapshot: activeWorkout.pairs.map((pair, pairIndex) => pair.map(([name, detail], exerciseIndex) => ({ name, detail, weight: currentWorkoutWeights[name] || "", sets: currentWorkoutSets[name]?.enabled ? currentWorkoutSets[name].sets : null, completed: Boolean(payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]) })))
     }];
     const weights = { ...(payload.weights || {}), ...currentWorkoutWeights };
     save({ ...payload, sessions, weights });
@@ -687,6 +693,36 @@ export default function App() {
 
   function updateWeight(name, value) {
     setCurrentWorkoutWeights(current => ({ ...current, [name]: value }));
+    setCurrentWorkoutSets(current => current[name]?.enabled ? { ...current, [name]: { ...current[name], sets: current[name].sets.map(set => ({ ...set, weight: value })) } } : current);
+  }
+
+  function toggleSetTracking(name, detail) {
+    setCurrentWorkoutSets(current => {
+      if (current[name]?.enabled) return { ...current, [name]: { ...current[name], enabled: false } };
+      const count = Number((detail.match(/(\d+)\s+sets?/i) || [])[1]) || 4;
+      const initialWeight = currentWorkoutWeights[name] || lastUsedWeight(name) || "";
+      return { ...current, [name]: { enabled: true, sets: Array.from({ length: Math.min(count, 12) }, () => ({ weight: initialWeight, completed: false })) } };
+    });
+  }
+  function updateLiveSet(name, index, patch) {
+    setCurrentWorkoutSets(current => {
+      const entry = current[name];
+      return entry?.enabled ? { ...current, [name]: { ...entry, sets: entry.sets.map((set, i) => i === index ? { ...set, ...patch } : set) } } : current;
+    });
+  }
+  function saveTrackerPreference(name, enabled) {
+    const trackerPrefs = { enabled, name: name.trim() || "Workout tracker" };
+    save({ ...payload, trackerPrefs });
+    setTrackerNameDraft(trackerPrefs.name);
+  }
+  function renderLiveExercise(name, detail) {
+    const tracking = currentWorkoutSets[name];
+    return <div className="exercise-row" key={name}>
+      <div className="exercise-name"><strong>{name}</strong><small>{detail}</small><button className="set-tracking-toggle" onClick={() => toggleSetTracking(name, detail)}>{tracking?.enabled ? "Use one weight for all sets" : "Adjust individual sets"}</button></div>
+      <label className="weight-input"><input aria-label={name + " weight in pounds"} inputMode="decimal" placeholder="—" value={currentWorkoutWeights[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} lb</small>}</label>
+      {tracking?.enabled && <div className="set-tracking-panel">{tracking.sets.map((set,index) => <div className="set-tracking-row" key={index}><label><input type="checkbox" checked={set.completed} onChange={e => updateLiveSet(name,index,{completed:e.target.checked})}/><span>Set {index+1}</span></label><input aria-label={name + " set " + (index+1) + " weight"} inputMode="decimal" placeholder="Weight" value={set.weight} onChange={e => updateLiveSet(name,index,{weight:e.target.value})}/><span>lb</span></div>)}</div>}
+      <ExerciseGuide name={name}/>
+    </div>;
   }
 
   function lastUsedWeight(name) {
@@ -852,7 +888,7 @@ export default function App() {
         return <div className="superset-and-core" key={index}>
         <article className={`superset-card ${complete ? "pair-complete" : ""}`}>
           <header><div className="superset-heading-copy"><span className="eyebrow">SUPERSET {displayIndex+1}</span><span className="pair-progress-label">{complete ? "Pair complete" : "Pair not complete"}</span></div><button className={`pair-check ${complete ? "checked" : ""}`} onClick={() => togglePair(index)}>{complete ? <><Check size={17}/> Done</> : "Complete pair"}</button></header>
-          {pair.map(([name,detail]) => <div className="exercise-row" key={name}><div className="exercise-name"><strong>{name}</strong><small>{detail}</small></div><label className="weight-input"><input aria-label={name + " weight in pounds"} inputMode="decimal" placeholder="—" value={currentWorkoutWeights[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} lb</small>}</label><ExerciseGuide name={name}/></div>)}
+          {pair.map(([name,detail]) => renderLiveExercise(name,detail))}
           <button className="rest-button" onClick={() => setRest(60)}><Timer size={14}/> Rest 60 sec</button>
         </article>
         {displayIndex < 2 && <div className={`core-break ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "done" ? "core-done" : ""}`}>
@@ -867,7 +903,7 @@ export default function App() {
       })}</section>
       <section className={`bonus-card ${expandedBonus ? "bonus-open" : ""}`}>
         <button className="bonus-toggle" onClick={() => {setExpandedBonus(v => !v);}}><div><div className="eyebrow">OPTIONAL BONUS ROUND</div><strong>Superset 4 · Feeling saucy?</strong><small>Extra credit. Not required to finish.</small></div><span>{expandedBonus ? <ChevronUp/> : <ChevronDown/>}</span></button>
-        {expandedBonus && (() => { const bonusIndex = bonusPairIndex; const bonusComplete = activeWorkout.pairs[bonusIndex].every((_,ei) => payload.done?.[exerciseKey(workoutId,bonusIndex,ei)]); return <div className="bonus-content">{activeWorkout.pairs[bonusIndex].map(([name,detail]) => <div className="exercise-row" key={name}><div className="exercise-name"><strong>{name}</strong><small>{detail}</small></div><label className="weight-input"><input aria-label={name + " weight in pounds"} inputMode="decimal" placeholder="—" value={currentWorkoutWeights[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} lb</small>}</label><ExerciseGuide name={name}/></div>)}<button className={`pair-check bonus-done ${bonusComplete ? "checked" : ""}`} onClick={() => togglePair(bonusIndex)}>{bonusComplete ? "Bonus complete · Undo" : "Mark bonus complete"}</button></div>; })()}
+        {expandedBonus && (() => { const bonusIndex = bonusPairIndex; const bonusComplete = activeWorkout.pairs[bonusIndex].every((_,ei) => payload.done?.[exerciseKey(workoutId,bonusIndex,ei)]); return <div className="bonus-content">{activeWorkout.pairs[bonusIndex].map(([name,detail]) => renderLiveExercise(name,detail))}<button className={`pair-check bonus-done ${bonusComplete ? "checked" : ""}`} onClick={() => togglePair(bonusIndex)}>{bonusComplete ? "Bonus complete · Undo" : "Mark bonus complete"}</button></div>; })()}
       </section>
       {rest > 0 && <div className="rest-overlay"><div><div className="eyebrow">REST TIMER</div><strong>{Math.floor(rest/60)}:{String(rest%60).padStart(2,"0")}</strong><button onClick={() => setRest(0)}>Skip rest</button></div></div>}
       <button className="primary-button complete-button" onClick={completeWorkout}> <Check size={18}/> Complete workout</button>
