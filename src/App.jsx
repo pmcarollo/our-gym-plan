@@ -80,7 +80,20 @@ function stravaWorkoutText(session) {
     }
     return `${prescription} ${item.name}${weight}`.trim();
   };
-  (session.exerciseSnapshot || []).flat().filter(item => item.completed).forEach(item => lines.push(formatExercise(item)));
+  (session.exerciseSnapshot || []).flat().filter(item => item.completed).forEach(item => {
+    const sets = Array.isArray(item.sets) ? item.sets.filter(set => set.completed) : [];
+    if (!sets.length) { lines.push(formatExercise(item)); return; }
+    const reps = (item.detail.match(/(\d+)\s+sets?\s*[·x]\s*(\d+)/i) || [])[2] || "";
+    const groups = [];
+    sets.forEach(set => {
+      const weight = set.weight ?? item.weight ?? "";
+      const key = weight + "|" + reps;
+      const last = groups[groups.length - 1];
+      if (last && last.key === key) last.count++;
+      else groups.push({ key, count: 1, weight });
+    });
+    groups.forEach(group => lines.push(group.count + "x" + reps + " " + item.name + (group.weight !== "" ? " " + group.weight + "lbs" : "")));
+  });
   (session.coreSnapshot || []).filter(item => item.status === "done").forEach(item => {
     const detail = item.prescription || "";
     const match = detail.match(/([\d–—-]+)\s*(?:reps?)?\s*each(?:\s+side)?/i);
@@ -820,6 +833,11 @@ export default function App() {
       <section className="greeting"><div><div className="eyebrow">PREFERENCES & REFERENCES</div><h2>Settings</h2><p>Tools and information for your training plan.</p></div></section>
       <button className="settings-library-card" onClick={() => setScreen("library")}><span className="settings-library-icon"><Library size={22}/></span><span><strong>Exercise Library</strong><small>{EXERCISE_LIBRARY.length} exercises · browse by muscle group, workout and training type</small></span><ArrowRight size={19}/></button>
       <div className="settings-note">The library brings together regular workouts, bonus movements, Wild Card options and optional core exercises.</div>
+      <div className="settings-section-label">WORKOUT TRACKER REMINDER</div>
+      <div className="tracker-preference-card">
+        <label className="tracker-preference-toggle"><input type="checkbox" checked={payload.trackerPrefs?.enabled ?? true} onChange={e => saveTrackerPreference(trackerNameDraft || payload.trackerPrefs?.name || (person === "Paul" ? "Garmin watch" : "Workout tracker"),e.target.checked)}/><span><strong>Remind me to start my tracker</strong><small>Show a reminder when I start a new workout.</small></span></label>
+        <label className="tracker-name-field">What do you use to track workouts?<input value={trackerNameDraft || payload.trackerPrefs?.name || (person === "Paul" ? "Garmin watch" : "Workout tracker")} onChange={e => setTrackerNameDraft(e.target.value)} onBlur={() => saveTrackerPreference(trackerNameDraft || "Workout tracker",payload.trackerPrefs?.enabled ?? true)} placeholder="e.g. Garmin watch"/></label>
+      </div>
       <div className="settings-section-label">APP & PROFILE</div>
       <button className="settings-action-card" onClick={() => choosePerson(person === "Test" ? "Paul" : person === "Paul" ? "Chris" : "Paul")}><span className="settings-action-icon"><RefreshCw size={19}/></span><span><strong>Switch profile</strong><small>Currently using {person} · switch to {person === "Test" ? "Paul" : person === "Paul" ? "Chris" : "Paul"}</small></span><ArrowRight size={19}/></button>
       <button className="settings-action-card" onClick={enterTestProfile}><span className="settings-action-icon"><Dumbbell size={19}/></span><span><strong>{person === "Test" ? "Test profile active" : "Open test profile"}</strong><small>Separate local-only workouts, weights and history · only on this device</small></span><ArrowRight size={19}/></button>
@@ -909,6 +927,13 @@ export default function App() {
       <button className="primary-button complete-button" onClick={completeWorkout}> <Check size={18}/> Complete workout</button>
       <p className="small-note centered">You can finish after three supersets. Bonus work is always optional.</p>
     </>}
+    {trackerModal && <div className="modal-backdrop tracker-modal-backdrop" role="presentation" onClick={() => setTrackerModal(false)}>
+      <section className="confirm-modal tracker-modal" role="dialog" aria-modal="true" aria-labelledby="tracker-modal-title" onClick={e => e.stopPropagation()}>
+        <div className="tracker-modal-icon"><Dumbbell size={24}/></div><div className="eyebrow">BEFORE YOU BEGIN</div><h3 id="tracker-modal-title">Ready to get after it?</h3>
+        <p>Remember to start your {payload.trackerPrefs?.name || (person === "Paul" ? "Garmin watch" : "workout tracker")} so your activity is captured.</p>
+        <div className="modal-actions"><button className="modal-cancel" onClick={() => setTrackerModal(false)}>Skip reminder</button><button className="modal-confirm" onClick={() => setTrackerModal(false)}>Let's go</button></div>
+      </section>
+    </div>}
     {activeModal && <div className="modal-backdrop" role="presentation" onClick={() => setActiveModal(null)}>
       <section className={`confirm-modal ${activeModal.destructive ? "confirm-modal-destructive" : ""}`} role="dialog" aria-modal="true" aria-labelledby="app-modal-title" aria-describedby="app-modal-description" onClick={e => e.stopPropagation()}>
         <div className="eyebrow">{activeModal.eyebrow}</div>
