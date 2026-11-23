@@ -399,7 +399,7 @@ export default function App() {
     setPayload(next);
     try {
       if (person === "Test") localStorage.setItem(TEST_PROFILE_KEY, JSON.stringify(next));
-      else await api("save", { token, profile: person, payload: next });
+      else await api("save", { token, profile: person, payload: person === "Paul" ? { ...next, sharedProgram } : next });
       setError("");
     } catch (e) { setError(e.message); }
   }
@@ -407,6 +407,7 @@ export default function App() {
   async function saveSharedProgram(next) {
     const normalized = { ...sharedProgram, ...next };
     setSharedProgram(normalized);
+    if (person === "Paul") setPayload(current => ({ ...current, sharedProgram: normalized }));
     if (person === "Test") {
       const local = { ...payload, week: normalized.week, supersetOrder: normalized.supersetOrder, coreOrder: normalized.coreOrder, disabledExercises: normalized.disabledExercises };
       setPayload(local); localStorage.setItem(TEST_PROFILE_KEY, JSON.stringify(local)); return;
