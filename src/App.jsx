@@ -376,8 +376,10 @@ export default function App() {
         if (person !== "Paul") {
           const paulResult = await api("load", { token, profile: "Paul" });
           const paulPayload = paulResult.profiles?.find(p => p.profile === "Paul")?.payload || {};
-          shared = paulPayload.sharedProgram || { week: paulPayload.week, supersetOrder: paulPayload.supersetOrder,
-            coreOrder: paulPayload.coreOrder, disabledExercises: paulPayload.disabledExercises, rotation: paulPayload.rotation };
+          shared = paulPayload.sharedProgram || (Object.keys(paulPayload).length ? { week: paulPayload.week, supersetOrder: paulPayload.supersetOrder,
+            coreOrder: paulPayload.coreOrder, disabledExercises: paulPayload.disabledExercises, rotation: paulPayload.rotation } : {
+            week: ownPayload.week, supersetOrder: ownPayload.supersetOrder, coreOrder: ownPayload.coreOrder,
+            disabledExercises: ownPayload.disabledExercises, rotation: ownPayload.rotation });
         } else if (!shared) {
           shared = { week: ownPayload.week, supersetOrder: ownPayload.supersetOrder, coreOrder: ownPayload.coreOrder,
             disabledExercises: ownPayload.disabledExercises, rotation: ownPayload.rotation };
