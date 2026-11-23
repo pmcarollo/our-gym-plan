@@ -397,7 +397,7 @@ export default function App() {
     setPayload(next);
     try {
       if (person === "Test") localStorage.setItem(TEST_PROFILE_KEY, JSON.stringify(next));
-      else await api("save", { token, profile: person, payload: person === "Paul" ? { ...next, sharedProgram } : next });
+      else await api("save", { token, profile: person, payload: next });
       setError("");
     } catch (e) { setError(e.message); }
   }
