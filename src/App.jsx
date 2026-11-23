@@ -64,7 +64,8 @@ function stravaWorkoutText(session) {
   const normalizeRange = value => value.replace(/[–—]/g, "-").replace(/\s+/g, " ").trim();
   const formatExercise = (item) => {
     const detail = item.detail || "";
-    const weight = item.weight !== "" && item.weight != null ? ` ${item.weight}lbs` : "";
+    const metric = exerciseMetric(item.name);
+    const weight = item.weight !== "" && item.weight != null ? ` ${item.weight}${metric === "lb" ? "lbs" : " " + metric}` : "";
     let prescription = "";
     let match = detail.match(/(\d+)\s+sets?\s*[·x]\s*(\d+)\s*(reps?|each)/i);
     if (match) {
@@ -213,6 +214,17 @@ const EXERCISE_GUIDES = {
   "Farmer carry": ["A loaded walk that trains grip, core and posture.", ["Hold weights at your sides with shoulders relaxed.", "Stand tall, brace gently and walk with controlled steps.", "Keep the weights steady and turn carefully."], "Avoid leaning to one side or shrugging."],
   "Cable wood chop": ["A diagonal cable movement that trains trunk control.", ["Stand sideways to the cable with feet planted.", "Move the handle diagonally across your body with control.", "Let your upper body rotate naturally while hips stay stable."], "Avoid yanking with your arms or twisting through your lower back."]
 };
+
+const EXERCISE_METRICS = {
+  "Push-up": "reps", "Incline push-up": "reps", "Close-grip push-up": "reps",
+  "Dead bug": "reps", "Pallof press": "reps", "Cable wood chop": "reps",
+  "Reverse crunch": "reps", "Bird dog": "reps", "Mountain climber": "reps",
+  "Bicycle crunch": "reps", "Heel taps": "reps", "Bear plank shoulder tap": "reps",
+  "Glute bridge march": "reps",
+  "Front plank": "sec", "Side plank": "sec", "Rower sprint": "sec",
+  "Bike sprint": "sec", "Incline treadmill walk": "sec", "Elliptical intervals": "sec"
+};
+const exerciseMetric = name => EXERCISE_METRICS[name] || "lb";
 
 const EXERCISE_MUSCLES = {
   "DB bench press":["Chest","Triceps","Shoulders"],"Lat pulldown":["Back","Biceps"],
@@ -735,8 +747,8 @@ export default function App() {
     const tracking = currentWorkoutSets[name];
     return <div className="exercise-row" key={name}>
       <div className="exercise-name"><strong>{name}</strong><small>{detail}</small><button className="set-tracking-toggle" onClick={() => toggleSetTracking(name, detail)}>{tracking?.enabled ? "Use one weight for all sets" : "Adjust individual sets"}</button></div>
-      <label className="weight-input"><input aria-label={name + " weight in pounds"} inputMode="decimal" placeholder="—" value={currentWorkoutWeights[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>lb</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} lb</small>}</label>
-      {tracking?.enabled && <div className="set-tracking-panel">{tracking.sets.map((set,index) => <div className="set-tracking-row" key={index}><label><input type="checkbox" checked={set.completed} onChange={e => updateLiveSet(name,index,{completed:e.target.checked})}/><span>Set {index+1}</span></label><input aria-label={name + " set " + (index+1) + " weight"} inputMode="decimal" placeholder="Weight" value={set.weight} onChange={e => updateLiveSet(name,index,{weight:e.target.value})}/><span>lb</span></div>)}</div>}
+      <label className="weight-input"><input aria-label={name + " " + (exerciseMetric(name) === "lb" ? "weight in pounds" : exerciseMetric(name) === "sec" ? "duration in seconds" : "repetitions")} inputMode="decimal" placeholder="—" value={currentWorkoutWeights[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>{exerciseMetric(name)}</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} {exerciseMetric(name)}</small>}</label>
+      {tracking?.enabled && <div className="set-tracking-panel">{tracking.sets.map((set,index) => <div className="set-tracking-row" key={index}><label><input type="checkbox" checked={set.completed} onChange={e => updateLiveSet(name,index,{completed:e.target.checked})}/><span>Set {index+1}</span></label><input aria-label={name + " set " + (index+1) + " " + exerciseMetric(name)} inputMode="decimal" placeholder={exerciseMetric(name) === "lb" ? "Weight" : exerciseMetric(name) === "sec" ? "Seconds" : "Reps"} value={set.weight} onChange={e => updateLiveSet(name,index,{weight:e.target.value})}/><span>{exerciseMetric(name)}</span></div>)}</div>}
       <ExerciseGuide name={name}/>
     </div>;
   }
@@ -880,8 +892,8 @@ export default function App() {
             <details className="history-weights">
               <summary><span>Recorded weights</span><span>{recordedWeights.length ? `${recordedWeights.length} logged` : "None logged"}</span></summary>
               {recordedWeights.length ? recordedWeights.map(item => <div className="history-exercise-group" key={item.name}>
-                <div className="history-exercise-row"><span>{item.name}</span><strong>{Array.isArray(item.sets) && item.sets.some(set => set.completed) ? "Set breakdown" : item.weight !== "" ? item.weight + " lb" : "—"}</strong></div>
-                {Array.isArray(item.sets) && item.sets.some(set => set.completed) && <div className="history-set-breakdown">{item.sets.map((set,index) => set.completed ? <div className="history-set-row" key={index}><span>Set {index+1}</span><strong>{set.weight !== "" && set.weight != null ? set.weight + " lb" : "Weight not recorded"}</strong></div> : null)}</div>}
+                <div className="history-exercise-row"><span>{item.name}</span><strong>{Array.isArray(item.sets) && item.sets.some(set => set.completed) ? "Set breakdown" : item.weight !== "" ? item.weight + " " + exerciseMetric(item.name) : "—"}</strong></div>
+                {Array.isArray(item.sets) && item.sets.some(set => set.completed) && <div className="history-set-breakdown">{item.sets.map((set,index) => set.completed ? <div className="history-set-row" key={index}><span>Set {index+1}</span><strong>{set.weight !== "" && set.weight != null ? set.weight + " " + exerciseMetric(item.name) : "Not recorded"}</strong></div> : null)}</div>}
               </div>) : <p className="history-no-weights">No weights were recorded for this session.</p>}
             </details>
             <button className="history-edit-workout" onClick={() => openCompletedWorkout(session)}><Dumbbell size={15}/> Edit workout</button>
@@ -896,7 +908,7 @@ export default function App() {
       <section className="greeting workout-heading"><div><div className="eyebrow">COMPLETED WORKOUT · WEEK {viewedSession.week}</div><h2>{viewedSession.workoutName || PROGRAM.find(w => w.id === viewedSession.workoutId)?.name || "Workout"}</h2><p>Completed {new Date(viewedSession.completedAt).toLocaleDateString([], {month:"long",day:"numeric",year:"numeric"})} · {new Date(viewedSession.completedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</p></div></section>
       <div className="completed-session-toolbar"><span className="muted-label">{editingCompletedSession ? "Editing exercises, completion & weights" : "Read-only workout record"}</span><button className="rotation-toggle" onClick={() => setEditingCompletedSession(value => !value)}>{editingCompletedSession ? "Done editing" : "Edit workout"}</button></div>
       <button className="history-strava-export completed-strava-export" onClick={() => copyStravaWorkout(viewedSession)}><ExternalLink size={16}/>{stravaCopiedId === viewedSession.id ? "Copied!" : "Copy for Strava"}</button>
-      <section className="superset-list">{(viewedSession.exerciseSnapshot || []).map((pair, pairIndex) => <article className="superset-card" key={pairIndex}><header><div className="superset-heading-copy"><span className="eyebrow">SUPERSET {pairIndex + 1}{pairIndex === 3 ? " · BONUS" : ""}</span><span className="pair-progress-label">{pair.every(item => item.completed) ? "Pair complete" : "Recorded"}</span></div></header>{pair.map((item, exerciseIndex) => <div className="exercise-row" key={item.name}><div className="exercise-name"><strong>{item.name}</strong><small>{item.detail}</small>{editingCompletedSession && <button className={`completed-exercise-toggle ${item.completed ? "is-complete" : ""}`} onClick={() => updateCompletedExercise(viewedSession.id, pairIndex, exerciseIndex, { completed: !item.completed })}>{item.completed ? <><Check size={13}/> Completed</> : "Mark completed"}</button>}</div><label className="weight-input">{editingCompletedSession ? <input aria-label={item.name + " recorded weight in pounds"} inputMode="decimal" placeholder="—" value={item.weight || ""} onChange={e => updateCompletedWeight(viewedSession.id, exerciseIndex, pairIndex, e.target.value)}/> : <strong>{item.weight || "—"}</strong>}<span>lb</span></label><ExerciseGuide name={item.name}/></div>)}</article>)}</section>
+      <section className="superset-list">{(viewedSession.exerciseSnapshot || []).map((pair, pairIndex) => <article className="superset-card" key={pairIndex}><header><div className="superset-heading-copy"><span className="eyebrow">SUPERSET {pairIndex + 1}{pairIndex === 3 ? " · BONUS" : ""}</span><span className="pair-progress-label">{pair.every(item => item.completed) ? "Pair complete" : "Recorded"}</span></div></header>{pair.map((item, exerciseIndex) => <div className="exercise-row" key={item.name}><div className="exercise-name"><strong>{item.name}</strong><small>{item.detail}</small>{editingCompletedSession && <button className={`completed-exercise-toggle ${item.completed ? "is-complete" : ""}`} onClick={() => updateCompletedExercise(viewedSession.id, pairIndex, exerciseIndex, { completed: !item.completed })}>{item.completed ? <><Check size={13}/> Completed</> : "Mark completed"}</button>}</div><label className="weight-input">{editingCompletedSession ? <input aria-label={item.name + " recorded " + exerciseMetric(item.name)} inputMode="decimal" placeholder="—" value={item.weight || ""} onChange={e => updateCompletedWeight(viewedSession.id, exerciseIndex, pairIndex, e.target.value)}/> : <strong>{item.weight || "—"}</strong>}<span>{exerciseMetric(item.name)}</span></label><ExerciseGuide name={item.name}/></div>)}</article>)}</section>
       {viewedSession.coreSnapshot?.length > 0 && <section className="core-break"><div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE</span>{viewedSession.coreSnapshot.map(core => <p key={core.name}><strong>{core.name}</strong><small>{core.prescription} · {core.status}</small>{editingCompletedSession && <span className="completed-core-actions"><button className={core.status === "done" ? "selected" : ""} onClick={() => updateCompletedCore(viewedSession.id, core.name, "done")}>Done</button><button className={core.status === "skipped" ? "selected" : ""} onClick={() => updateCompletedCore(viewedSession.id, core.name, "skipped")}>Skip</button></span>}</p>)}</div></section>}
     </> : activeWorkout && <>
       <button className="back-button" onClick={() => setScreen("home")}>← All workouts</button>
