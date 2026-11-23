@@ -29,10 +29,10 @@ const PROGRAM = [
     [["Rear delt fly", "Bonus · 4 sets · 10 reps"], ["Incline DB curl", "Bonus · 4 sets · 10 reps"]]
   ]},
   { id: "D", name: "Full Body + Core", focus: "Strength · Stability · Core", pairs: [
-    [["DB step-up", "4 sets · 10 each"], ["Incline push-up", "4 sets · 10 reps"]],
+    [["DB step-up", "4 sets · 10 each"], ["Smith machine bench press", "4 sets · 10 reps"]],
     [["DB deadlift", "4 sets · 10 reps"], ["Dead bug", "4 sets · 10 each"]],
     [["Pallof press", "4 sets · 10 each"], ["Front plank", "4 sets · 20–30 sec"]],
-    [["Farmer carry", "Bonus · 4 carries · 30–40 yd or 30–45 sec"], ["Cable wood chop", "Bonus · 4 sets · 10 reps"]]
+    [["DB split squat", "Bonus · 4 sets · 10 each"], ["Cable wood chop", "Bonus · 4 sets · 10 reps"]]
   ]}
 ];
 
@@ -53,10 +53,10 @@ const CORE_BREAKS = [
 
 
 const WILD_CARD_POOLS = {
-  push: [["DB floor press","4 sets · 10 reps"],["Cable chest fly","4 sets · 12 reps"],["Close-grip push-up","4 sets · 8–12 reps"],["Smith machine bench press","4 sets · 8–10 reps"]],
+  push: [["Cable chest fly","4 sets · 12 reps"],["Close-grip push-up","4 sets · 8–12 reps"],["Smith machine bench press","4 sets · 10 reps"]],
   pull: [["Seated cable row","4 sets · 10 reps"],["Straight-arm pulldown","4 sets · 12 reps"],["Reverse-grip lat pulldown","4 sets · 10 reps"],["Cable rear-delt row","4 sets · 12 reps"]],
   legs: [["DB split squat","4 sets · 8 each"],["Lateral lunge","4 sets · 8 each"],["Single-leg DB Romanian deadlift","4 sets · 8 each"],["Smith machine squat","4 sets · 10 reps"]],
-  finisher: [["Rower sprint","4 rounds · 30 sec"],["Bike sprint","4 rounds · 30 sec"],["Incline treadmill walk","4 rounds · 1 min"],["Elliptical intervals","4 rounds · 1 min"]]
+  finisher: [["Rower sprint","4 rounds · 30 sec"],["Bike sprint","4 rounds · 30 sec"],["Incline treadmill walk","4 rounds · 1 min"]]
 };
 
 function stravaWorkoutText(session) {
