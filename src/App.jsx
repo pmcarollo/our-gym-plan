@@ -744,8 +744,13 @@ export default function App() {
   function lastUsedWeight(name) {
     const sessions = [...(payload.sessions || [])].sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0));
     for (const session of sessions) {
-      const exercise = session.exerciseSnapshot?.flat().find(item => item.name === name && item.weight !== "");
-      if (exercise) return exercise.weight;
+      const exercise = session.exerciseSnapshot?.flat().find(item => item.name === name);
+      if (!exercise) continue;
+      if (Array.isArray(exercise.sets)) {
+        const lastCompletedSet = [...exercise.sets].reverse().find(set => set.completed && set.weight !== "" && set.weight != null);
+        if (lastCompletedSet) return lastCompletedSet.weight;
+      }
+      if (exercise.weight !== "" && exercise.weight != null) return exercise.weight;
     }
     return "";
   }
@@ -866,7 +871,7 @@ export default function App() {
       <section className="history-list">
         {[...(payload.sessions || [])].sort((a,b) => new Date(b.completedAt) - new Date(a.completedAt)).map(session => {
           const workout = PROGRAM.find(w => w.id === session.workoutId) || (session.workoutId === "E" ? { name: "Wild Card" } : null);
-          const recordedWeights = (session.exerciseSnapshot || []).flat().filter(item => item.weight !== "" && item.weight != null);
+          const recordedWeights = (session.exerciseSnapshot || []).flat().filter(item => (Array.isArray(item.sets) && item.sets.some(set => set.completed && set.weight !== "" && set.weight != null)) || (item.weight !== "" && item.weight != null));
           const exerciseCount = (session.exerciseSnapshot || []).flat().length;
           const duration = session.startedAt && session.completedAt ? Math.max(1, Math.round((new Date(session.completedAt) - new Date(session.startedAt)) / 60000)) : null;
           return <article className="history-card" key={session.id}>
@@ -874,7 +879,10 @@ export default function App() {
             <div className="history-meta"><span>{session.completedAt ? "Finished " + new Date(session.completedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : "Completion time unavailable"}</span>{duration && <span>{duration} min</span>}<span>{exerciseCount} exercises</span></div>
             <details className="history-weights">
               <summary><span>Recorded weights</span><span>{recordedWeights.length ? `${recordedWeights.length} logged` : "None logged"}</span></summary>
-              {recordedWeights.length ? recordedWeights.map(item => <div className="history-exercise-row" key={item.name}><span>{item.name}</span><strong>{item.weight} lb</strong></div>) : <p className="history-no-weights">No weights were recorded for this session.</p>}
+              {recordedWeights.length ? recordedWeights.map(item => <div className="history-exercise-group" key={item.name}>
+                <div className="history-exercise-row"><span>{item.name}</span><strong>{Array.isArray(item.sets) && item.sets.some(set => set.completed) ? "Set breakdown" : item.weight !== "" ? item.weight + " lb" : "—"}</strong></div>
+                {Array.isArray(item.sets) && item.sets.some(set => set.completed) && <div className="history-set-breakdown">{item.sets.map((set,index) => set.completed ? <div className="history-set-row" key={index}><span>Set {index+1}</span><strong>{set.weight !== "" && set.weight != null ? set.weight + " lb" : "Weight not recorded"}</strong></div> : null)}</div>}
+              </div>) : <p className="history-no-weights">No weights were recorded for this session.</p>}
             </details>
             <button className="history-edit-workout" onClick={() => openCompletedWorkout(session)}><Dumbbell size={15}/> Edit workout</button>
             <button className="history-strava-export" onClick={() => copyStravaWorkout(session)}><ExternalLink size={15}/>{stravaCopiedId === session.id ? "Copied!" : "Copy for Strava"}</button>
