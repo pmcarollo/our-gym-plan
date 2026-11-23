@@ -283,6 +283,7 @@ export default function App() {
   const [person, setPerson] = useState(() => localStorage.getItem(PERSON_KEY) || "");
   const [pin, setPin] = useState("");
   const [payload, setPayload] = useState(emptyPayload);
+  const [sharedProgram, setSharedProgram] = useState({ week: 1, supersetOrder: {}, coreOrder: {}, disabledExercises: [], rotation: {} });
   const [screen, setScreen] = useState("home");
   const [libraryFilter, setLibraryFilter] = useState("All");
   const [librarySourceFilter, setLibrarySourceFilter] = useState("All");
@@ -306,7 +307,7 @@ export default function App() {
 
   const viewedSession = (payload.sessions || []).find(session => session.id === viewSessionId) || null;
 
-  const week = payload.week || 1;
+  const week = person === "Test" ? (payload.week || 1) : sharedProgram.week;
   const activeWorkout = PROGRAM.find(w => w.id === workoutId) || (workoutId === "E" ? wildCardWorkout : null);
   const activePairOrder = activeWorkout
     ? (payload.supersetOrder?.['w' + week + '-' + workoutId] || [0, 1, 2, 3]).slice(0, 3)
