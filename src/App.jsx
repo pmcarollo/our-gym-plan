@@ -370,7 +370,20 @@ export default function App() {
       } else {
         const result = await api("load", { token, profile: person });
         const profile = result.profiles?.find(p => p.profile === person);
-        setPayload(profile?.payload && Object.keys(profile.payload).length ? profile.payload : emptyPayload());
+        const ownPayload = profile?.payload && Object.keys(profile.payload).length ? profile.payload : emptyPayload();
+        let shared = ownPayload.sharedProgram;
+        if (person !== "Paul") {
+          const paulResult = await api("load", { token, profile: "Paul" });
+          const paulPayload = paulResult.profiles?.find(p => p.profile === "Paul")?.payload || {};
+          shared = paulPayload.sharedProgram || { week: paulPayload.week, supersetOrder: paulPayload.supersetOrder,
+            coreOrder: paulPayload.coreOrder, disabledExercises: paulPayload.disabledExercises, rotation: paulPayload.rotation };
+        } else if (!shared) {
+          shared = { week: ownPayload.week, supersetOrder: ownPayload.supersetOrder, coreOrder: ownPayload.coreOrder,
+            disabledExercises: ownPayload.disabledExercises, rotation: ownPayload.rotation };
+        }
+        setSharedProgram({ week: Math.max(1, Number(shared?.week) || 1), supersetOrder: shared?.supersetOrder || {},
+          coreOrder: shared?.coreOrder || {}, disabledExercises: shared?.disabledExercises || [], rotation: shared?.rotation || {} });
+        setPayload(ownPayload);
       }
       setError("");
     } catch (e) {
@@ -383,9 +396,25 @@ export default function App() {
     setPayload(next);
     try {
       if (person === "Test") localStorage.setItem(TEST_PROFILE_KEY, JSON.stringify(next));
-      else await api("save", { token, profile: person, payload: next });
+      else await api("save", { token, profile: person, payload: person === "Paul" ? { ...next, sharedProgram } : next });
       setError("");
     } catch (e) { setError(e.message); }
+  }
+
+  async function saveSharedProgram(next) {
+    const normalized = { ...sharedProgram, ...next };
+    setSharedProgram(normalized);
+    if (person === "Test") {
+      const local = { ...payload, week: normalized.week, supersetOrder: normalized.supersetOrder, coreOrder: normalized.coreOrder, disabledExercises: normalized.disabledExercises };
+      setPayload(local); localStorage.setItem(TEST_PROFILE_KEY, JSON.stringify(local)); return;
+    }
+    try {
+      const result = await api("load", { token, profile: "Paul" });
+      const paulPayload = result.profiles?.find(p => p.profile === "Paul")?.payload || emptyPayload();
+      await api("save", { token, profile: "Paul", payload: { ...paulPayload, sharedProgram: normalized } });
+      if (person === "Paul") setPayload(current => ({ ...current, sharedProgram: normalized }));
+      setError("");
+    } catch (e) { setError("Couldn't sync the shared workout plan: " + e.message); }
   }
 
   async function login(e) {
@@ -457,7 +486,7 @@ export default function App() {
   }
 
   function availableCoreIndices() {
-    const disabled = payload.disabledExercises || [];
+    const disabled = sharedProgram.disabledExercises || [];
     return CORE_BREAKS.map((item, i) => i).filter(i => !disabled.includes(CORE_BREAKS[i][0]));
   }
 
@@ -465,10 +494,10 @@ export default function App() {
     const coreOrderKey = "w" + week + "-" + id;
     const availableCore = availableCoreIndices();
     if (availableCore.length < 2) { setError("Keep at least two optional core exercises enabled."); return; }
-    const existingCoreOrder = payload.coreOrder?.[coreOrderKey];
+    const existingCoreOrder = sharedProgram.coreOrder?.[coreOrderKey];
     if (!existingCoreOrder || existingCoreOrder.slice(0,2).some(i => !availableCore.includes(i))) {
-      const coreOrder = { ...(payload.coreOrder || {}), [coreOrderKey]: seededShuffle(availableCore, "core-" + person + "-" + week + "-" + id) };
-      save({ ...payload, coreOrder });
+      const coreOrder = { ...(sharedProgram.coreOrder || {}), [coreOrderKey]: seededShuffle(availableCore, "shared-core-" + week + "-" + id) };
+      saveSharedProgram({ coreOrder });
     }
     const done = { ...(payload.done || {}) };
     Object.keys(done).filter(key => key.startsWith(`${id}-p`)).forEach(key => delete done[key]);
@@ -486,14 +515,15 @@ export default function App() {
 
   function startWildCardWorkout() {
     let generated;
-    try { generated = generateWildCard(currentCalendarWeekKey(), payload.disabledExercises || []); }
+    try { generated = generateWildCard(week, sharedProgram.disabledExercises || []); }
     catch (e) { setError(e.message); return; }
     const coreOrderKey = 'w' + week + '-E';
-    const coreOrder = { ...(payload.coreOrder || {}), [coreOrderKey]: generated.coreOrder };
-    const supersetOrder = { ...(payload.supersetOrder || {}), [coreOrderKey]: [0,1,2,3] };
+    const coreOrder = { ...(sharedProgram.coreOrder || {}), [coreOrderKey]: generated.coreOrder };
+    const supersetOrder = { ...(sharedProgram.supersetOrder || {}), [coreOrderKey]: [0,1,2,3] };
     const done = { ...(payload.done || {}) };
     Object.keys(done).filter(key => key.startsWith("E-p")).forEach(key => delete done[key]);
-    save({ ...payload, coreOrder, supersetOrder, done });
+    saveSharedProgram({ coreOrder, supersetOrder });
+    save({ ...payload, done });
     setWildCardWorkout(generated);
     setWorkoutId("E");
     setWorkoutDate(todayKey());
@@ -560,7 +590,8 @@ export default function App() {
       setError("Finish or discard your in-progress workout before changing weeks.");
       return;
     }
-    save({ ...payload, week: week - 1, done: {}, coreDone: {} });
+    saveSharedProgram({ week: week - 1 });
+    save({ ...payload, done: {}, coreDone: {} });
   }
 
   function nextWeek() {
@@ -569,16 +600,17 @@ export default function App() {
       return;
     }
     const nextWeekNumber = week + 1;
-    const supersetOrder = { ...(payload.supersetOrder || {}) };
-    const coreOrder = { ...(payload.coreOrder || {}) };
-    const weekAlreadyExists = (payload.sessions || []).some(session => session.week === nextWeekNumber) || PROGRAM.some(workout => supersetOrder['w' + nextWeekNumber + '-' + workout.id]);
+    const supersetOrder = { ...(sharedProgram.supersetOrder || {}) };
+    const coreOrder = { ...(sharedProgram.coreOrder || {}) };
+    const weekAlreadyExists = PROGRAM.some(workout => supersetOrder['w' + nextWeekNumber + '-' + workout.id]);
     if (!weekAlreadyExists) {
       PROGRAM.forEach(workout => {
-        supersetOrder['w' + nextWeekNumber + '-' + workout.id] = seededShuffle([0, 1, 2, 3], "superset-" + person + "-" + nextWeekNumber + "-" + workout.id);
-        coreOrder["w" + nextWeekNumber + "-" + workout.id] = seededShuffle(availableCoreIndices(), "core-" + person + "-" + nextWeekNumber + "-" + workout.id);
+        supersetOrder['w' + nextWeekNumber + '-' + workout.id] = seededShuffle([0, 1, 2, 3], "shared-superset-" + nextWeekNumber + "-" + workout.id);
+        coreOrder["w" + nextWeekNumber + "-" + workout.id] = seededShuffle(availableCoreIndices(), "shared-core-" + nextWeekNumber + "-" + workout.id);
       });
     }
-    save({ ...payload, week: nextWeekNumber, supersetOrder, coreOrder, done: {}, coreDone: {} });
+    saveSharedProgram({ week: nextWeekNumber, supersetOrder, coreOrder });
+    save({ ...payload, done: {}, coreDone: {} });
     setActiveModal(null);
   }
 
@@ -678,7 +710,7 @@ export default function App() {
       setLibraryMessage("Keep at least two optional core exercises enabled."); return;
     }
     setLibraryMessage("");
-    save({ ...payload, disabledExercises: nextDisabled });
+    saveSharedProgram({ disabledExercises: nextDisabled });
   }
 
   function enterTestProfile() {
