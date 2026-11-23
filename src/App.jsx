@@ -747,7 +747,7 @@ export default function App() {
   function renderLiveExercise(name, detail) {
     const tracking = currentWorkoutSets[name];
     return <div className="exercise-row" key={name}>
-      <div className="exercise-name"><strong>{name}</strong><small>{detail}</small><button className="set-tracking-toggle" onClick={() => toggleSetTracking(name, detail)}>{tracking?.enabled ? "Use one weight for all sets" : "Adjust individual sets"}</button></div>
+      <div className="exercise-name"><strong>{name}</strong><small>{detail}</small><button className="set-tracking-toggle" onClick={() => toggleSetTracking(name, detail)}>{tracking?.enabled ? "Use one value for all sets" : "Adjust individual sets"}</button></div>
       <label className="weight-input"><input aria-label={name + " " + (exerciseMetric(name) === "lb" ? "weight in pounds" : exerciseMetric(name) === "sec" ? "duration in seconds" : "repetitions")} inputMode="decimal" placeholder="—" value={currentWorkoutWeights[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>{exerciseMetric(name)}</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last used: {lastUsedWeight(name)} {exerciseMetric(name)}</small>}</label>
       {tracking?.enabled && <div className="set-tracking-panel">{tracking.sets.map((set,index) => <div className="set-tracking-row" key={index}><label><input type="checkbox" checked={set.completed} onChange={e => updateLiveSet(name,index,{completed:e.target.checked})}/><span>Set {index+1}</span></label><input aria-label={name + " set " + (index+1) + " " + exerciseMetric(name)} inputMode="decimal" placeholder={exerciseMetric(name) === "lb" ? "Weight" : exerciseMetric(name) === "sec" ? "Seconds" : "Reps"} value={set.weight} onChange={e => updateLiveSet(name,index,{weight:e.target.value})}/><span>{exerciseMetric(name)}</span></div>)}</div>}
       <ExerciseGuide name={name}/>
@@ -891,11 +891,11 @@ export default function App() {
             <div className="history-card-head"><div className="history-title-group"><span className="history-workout-mark">{session.workoutId}</span><div><span className="eyebrow">WEEK {session.week || "—"}</span><h3>{session.workoutName || workout?.name || `Workout ${session.workoutId}`}</h3></div></div><time>{session.completedAt ? new Date(session.completedAt).toLocaleDateString([], {month:"short",day:"numeric",year:"numeric"}) : "Date unavailable"}</time></div>
             <div className="history-meta"><span>{session.completedAt ? "Finished " + new Date(session.completedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : "Completion time unavailable"}</span>{duration && <span>{duration} min</span>}<span>{exerciseCount} exercises</span></div>
             <details className="history-weights">
-              <summary><span>Recorded weights</span><span>{recordedWeights.length ? `${recordedWeights.length} logged` : "None logged"}</span></summary>
+              <summary><span>Recorded values</span><span>{recordedWeights.length ? `${recordedWeights.length} logged` : "None logged"}</span></summary>
               {recordedWeights.length ? recordedWeights.map(item => <div className="history-exercise-group" key={item.name}>
                 <div className="history-exercise-row"><span>{item.name}</span><strong>{Array.isArray(item.sets) && item.sets.some(set => set.completed) ? "Set breakdown" : item.weight !== "" ? item.weight + " " + exerciseMetric(item.name) : "—"}</strong></div>
                 {Array.isArray(item.sets) && item.sets.some(set => set.completed) && <div className="history-set-breakdown">{item.sets.map((set,index) => set.completed ? <div className="history-set-row" key={index}><span>Set {index+1}</span><strong>{set.weight !== "" && set.weight != null ? set.weight + " " + exerciseMetric(item.name) : "Not recorded"}</strong></div> : null)}</div>}
-              </div>) : <p className="history-no-weights">No weights were recorded for this session.</p>}
+              </div>) : <p className="history-no-weights">No values were recorded for this session.</p>}
             </details>
             <button className="history-edit-workout" onClick={() => openCompletedWorkout(session)}><Dumbbell size={15}/> Edit workout</button>
             <button className="history-strava-export" onClick={() => copyStravaWorkout(session)}><ExternalLink size={15}/>{stravaCopiedId === session.id ? "Copied!" : "Copy for Strava"}</button>
