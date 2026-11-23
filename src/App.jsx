@@ -93,7 +93,7 @@ function stravaWorkoutText(session) {
       if (last && last.key === key) last.count++;
       else groups.push({ key, count: 1, weight });
     });
-    groups.forEach(group => lines.push(group.count + "x" + reps + " " + item.name + (group.weight !== "" ? " " + group.weight + "lbs" : "")));
+    groups.forEach(group => lines.push(group.count + "x" + reps + " " + item.name + (group.weight !== "" ? " " + group.weight + (metric === "lb" ? "lbs" : " " + metric) : "")));
   });
   (session.coreSnapshot || []).filter(item => item.status === "done").forEach(item => {
     const detail = item.prescription || "";
