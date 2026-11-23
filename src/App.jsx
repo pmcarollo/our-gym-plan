@@ -85,6 +85,7 @@ function stravaWorkoutText(session) {
     const sets = Array.isArray(item.sets) ? item.sets.filter(set => set.completed) : [];
     if (!sets.length) { lines.push(formatExercise(item)); return; }
     const reps = (item.detail.match(/(\d+)\s+sets?\s*[·x]\s*(\d+)/i) || [])[2] || "";
+    const metric = exerciseMetric(item.name);
     const groups = [];
     sets.forEach(set => {
       const weight = set.weight ?? item.weight ?? "";
