@@ -850,7 +850,7 @@ export default function App() {
     {screen === "home" ? <>
       <section className="home-welcome">
         <div className="home-greeting-copy"><div className="eyebrow">LET'S GET AFTER IT</div><h2>{timeGreeting}, {person}.</h2><p>Week {week} · {easternTime} Eastern</p></div>
-        <div className="home-header-tools"><span className="home-week-pill">WEEK {String(week).padStart(2,"0")}</span><div className="home-quick-links"><button className="home-history-link" onClick={() => setScreen("progress")}>Progress <ArrowRight size={15}/></button><button className="home-history-link" onClick={() => setScreen("history")}>History <ArrowRight size={15}/></button></div></div>
+        <div className="home-header-tools"><span className="home-week-pill">WEEK {String(week).padStart(2,"0")}</span><div className="home-quick-links"><button className="home-history-link" onClick={() => setScreen("progress")}><Trophy size={15}/> Progress</button><button className="home-history-link" onClick={() => setScreen("history")}><Clock3 size={15}/> History</button></div></div>
       </section>
       <section className={`home-progress-strip ${completedThisWeek >= 4 ? "goal-reached" : ""}`}>
         <div className="home-progress-copy"><strong>{completedThisWeek >= 4 ? "4 of 4 workouts complete" : `${completedThisWeek} of 4 workouts`}</strong><span>{completedThisWeek >= 4 ? "Goal hit · extra credit is yours" : `${4-completedThisWeek} to go this week`}</span></div>
