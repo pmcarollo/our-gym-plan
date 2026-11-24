@@ -1788,3 +1788,20 @@ button, input, select, textarea { font-family: inherit; }
     padding: 9px 12px;
   }
 }
+
+
+
+/* The home dashboard is intentionally a one-viewport screen on iPhone. */
+html:has(.home-welcome),
+body:has(.home-welcome) {
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+.app-shell:has(.home-welcome) {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
