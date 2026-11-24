@@ -2116,3 +2116,42 @@ body:has(.app-shell:has(.settings-library-card)) {
     top: 82px;
   }
 }
+
+
+/* Keep the sticky workout exit bar and progress card in separate vertical lanes. */
+.workout-screen-shell > .back-button {
+  top: 0;
+  z-index: 35;
+  min-height: 50px;
+  margin-bottom: 0;
+  background: rgba(242, 243, 236, .98);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+.workout-screen-shell .live-progress-card {
+  top: 50px;
+  z-index: 12;
+}
+
+/* Reserve enough scroll runway for the fixed completion control and iPhone home area. */
+.workout-screen-shell {
+  padding-bottom: calc(190px + env(safe-area-inset-bottom));
+}
+
+/* Compact the pinned library controls while keeping both filter groups visible. */
+.scroll-screen-shell .library-toolbar {
+  padding-top: 5px;
+  padding-bottom: 3px;
+  margin-bottom: 8px;
+}
+.scroll-screen-shell .library-toolbar .library-filter-label {
+  margin-top: 2px;
+  font-size: 9px;
+}
+.scroll-screen-shell .library-toolbar .library-filter-group .library-filters {
+  padding-top: 5px;
+  padding-bottom: 6px;
+}
+.scroll-screen-shell .library-toolbar .library-filter-group .library-filters button {
+  min-height: 34px;
+}
