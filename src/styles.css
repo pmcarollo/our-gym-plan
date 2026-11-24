@@ -1805,3 +1805,144 @@ body:has(.home-welcome) {
   min-height: 0;
   overflow: hidden;
 }
+
+
+
+/* Compact entry points and a useful, data-grounded progress view. */
+.home-quick-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.home-quick-links .home-history-link {
+  min-height: 30px;
+  white-space: nowrap;
+}
+.progress-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 3px 0 26px;
+}
+.progress-summary-card {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  min-width: 0;
+  padding: 13px 11px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--paper);
+}
+.progress-summary-card > span {
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .07em;
+}
+.progress-summary-card > strong {
+  color: var(--green);
+  font-size: 25px;
+  font-weight: 850;
+  letter-spacing: -.05em;
+}
+.progress-summary-card > strong i {
+  color: #9aa596;
+  font-size: 13px;
+  font-style: normal;
+}
+.progress-summary-card > small {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.3;
+}
+.progress-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 1px 11px;
+}
+.progress-section-heading h3 {
+  margin: 3px 0 0;
+  font-size: 20px;
+}
+.progress-section-heading > span {
+  color: var(--muted);
+  font-size: 9px;
+  text-align: right;
+}
+.progress-exercise-list {
+  display: grid;
+  gap: 8px;
+}
+.progress-exercise-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+}
+.progress-exercise-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.progress-exercise-copy strong {
+  color: var(--green);
+  font-size: 13px;
+}
+.progress-exercise-copy small {
+  color: var(--muted);
+  font-size: 9px;
+}
+.progress-exercise-value {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  flex: 0 0 auto;
+}
+.progress-exercise-value > strong {
+  color: var(--green);
+  font-size: 18px;
+}
+.progress-exercise-value > strong small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.progress-exercise-value > span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+}
+.progress-exercise-value > span.is-up { color: #39794a; }
+.progress-exercise-value > span.is-down { color: #a66a48; }
+.progress-empty-state {
+  padding: 22px 16px;
+  border: 1px dashed #cbd5c5;
+  border-radius: 13px;
+  background: rgba(255,255,255,.45);
+  text-align: center;
+}
+.progress-empty-state strong {
+  color: var(--green);
+  font-size: 13px;
+}
+.progress-empty-state p,
+.progress-footnote {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+.progress-empty-state p { margin: 7px 0 0; }
+.progress-footnote { margin: 13px 2px; }
+@media (max-width: 380px) {
+  .home-quick-links { gap: 8px; }
+  .progress-summary-grid { gap: 6px; }
+  .progress-summary-card { padding: 11px 8px; }
+  .progress-summary-card > span { font-size: 7px; }
+  .progress-summary-card > strong { font-size: 22px; }
+}
