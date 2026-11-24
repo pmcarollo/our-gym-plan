@@ -351,6 +351,31 @@ export default function App() {
     : 0;
   const completedThisWeek = useMemo(() => (payload.sessions || []).filter(s => s.week === week && s.completedAt).length, [payload, week]);
 
+  const progressExerciseRows = useMemo(() => {
+    const history = [...(payload.sessions || [])].sort((a,b) => new Date(a.completedAt || 0) - new Date(b.completedAt || 0));
+    const byExercise = new Map();
+    history.forEach(session => (session.exerciseSnapshot || []).flat().forEach(item => {
+      if (exerciseMetric(item.name) !== "lb") return;
+      let value = "";
+      if (Array.isArray(item.sets)) {
+        const completedSet = [...item.sets].reverse().find(set => set.completed && set.weight !== "" && set.weight != null);
+        if (completedSet) value = completedSet.weight;
+      }
+      if (value === "" && item.weight !== "" && item.weight != null) value = item.weight;
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric) || value === "") return;
+      const entries = byExercise.get(item.name) || [];
+      entries.push({ value: numeric, date: session.completedAt, workoutName: session.workoutName || session.workoutId });
+      byExercise.set(item.name, entries);
+    }));
+    return [...byExercise.entries()].map(([name, entries]) => {
+      const latest = entries[entries.length - 1];
+      const previous = entries.length > 1 ? entries[entries.length - 2] : null;
+      return { name, latest, previous, count: entries.length, change: previous ? latest.value - previous.value : null };
+    }).sort((a,b) => new Date(b.latest.date || 0) - new Date(a.latest.date || 0)).slice(0,8);
+  }, [payload.sessions]);
+  const sessionsLast28Days = useMemo(() => (payload.sessions || []).filter(session => session.completedAt && Date.now() - new Date(session.completedAt).getTime() <= 28 * 86400000).length, [payload.sessions]);
+
   useEffect(() => {
     if (!rest) return;
     const id = setInterval(() => setRest(v => Math.max(0, v - 1)), 1000);
@@ -825,7 +850,7 @@ export default function App() {
     {screen === "home" ? <>
       <section className="home-welcome">
         <div className="home-greeting-copy"><div className="eyebrow">LET'S GET AFTER IT</div><h2>{timeGreeting}, {person}.</h2><p>Week {week} · {easternTime} Eastern</p></div>
-        <div className="home-header-tools"><span className="home-week-pill">WEEK {String(week).padStart(2,"0")}</span><button className="home-history-link" onClick={() => setScreen("history")}>History <ArrowRight size={15}/></button></div>
+        <div className="home-header-tools"><span className="home-week-pill">WEEK {String(week).padStart(2,"0")}</span><div className="home-quick-links"><button className="home-history-link" onClick={() => setScreen("progress")}>Progress <ArrowRight size={15}/></button><button className="home-history-link" onClick={() => setScreen("history")}>History <ArrowRight size={15}/></button></div></div>
       </section>
       <section className={`home-progress-strip ${completedThisWeek >= 4 ? "goal-reached" : ""}`}>
         <div className="home-progress-copy"><strong>{completedThisWeek >= 4 ? "4 of 4 workouts complete" : `${completedThisWeek} of 4 workouts`}</strong><span>{completedThisWeek >= 4 ? "Goal hit · extra credit is yours" : `${4-completedThisWeek} to go this week`}</span></div>
@@ -889,6 +914,23 @@ export default function App() {
       </article>)}{!filteredLibrary.length && <p className="history-empty">No exercises match that search.</p>}</section>
       {libraryMessage && <p className="error">{libraryMessage}</p>}
       <p className="library-footnote">Excluded exercises are skipped by future Wild Card and optional-core selections. Fixed A–D assignments remain unchanged; completed history and saved weights are preserved.</p>
+    </> : screen === "progress" ? <>
+      <button className="back-button" onClick={() => setScreen("home")}>← Back to workouts</button>
+      <section className="greeting"><div><div className="eyebrow">THE WORK ADDS UP</div><h2>Your progress</h2><p>A simple look at consistency and strength trends.</p></div></section>
+      <section className="progress-summary-grid">
+        <article className="progress-summary-card"><span>ALL-TIME WORKOUTS</span><strong>{payload.sessions?.length || 0}</strong><small>Completed sessions</small></article>
+        <article className="progress-summary-card"><span>LAST 28 DAYS</span><strong>{sessionsLast28Days}</strong><small>Recent consistency</small></article>
+        <article className="progress-summary-card"><span>THIS WEEK</span><strong>{completedThisWeek}<i> / 4</i></strong><small>{completedThisWeek >= 4 ? "Weekly target reached" : "Workouts completed"}</small></article>
+      </section>
+      <div className="progress-section-heading"><div><span className="eyebrow">STRENGTH TRACKER</span><h3>Recent lift progress</h3></div><span>Latest vs. previous</span></div>
+      <section className="progress-exercise-list">
+        {progressExerciseRows.map(item => <article className="progress-exercise-card" key={item.name}>
+          <div className="progress-exercise-copy"><strong>{item.name}</strong><small>{item.count} logged {item.count === 1 ? "session" : "sessions"} · {item.latest.date ? new Date(item.latest.date).toLocaleDateString([], {month:"short",day:"numeric"}) : "Date unavailable"}</small></div>
+          <div className="progress-exercise-value"><strong>{item.latest.value} <small>lb</small></strong>{item.previous ? <span className={item.change > 0 ? "is-up" : item.change < 0 ? "is-down" : ""}>{item.change > 0 ? "+" : ""}{item.change} lb</span> : <span>First entry</span>}</div>
+        </article>)}
+        {!progressExerciseRows.length && <div className="progress-empty-state"><strong>Your strength trends will show up here.</strong><p>Log weights during a few workouts and we'll compare your latest entries with the previous ones.</p></div>}
+      </section>
+      <p className="progress-footnote">Comparisons use the latest recorded working weight for each exercise. They are a snapshot, not a measure of total training volume.</p>
     </> : screen === "history" ? <>
       <button className="back-button" onClick={() => setScreen("home")}>← Back to workouts</button>
       <section className="greeting"><div><div className="eyebrow">YOUR TRAINING LOG</div><h2>Workout history</h2><p>{payload.sessions?.length || 0} completed workouts</p></div></section>
