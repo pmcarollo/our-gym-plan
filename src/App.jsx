@@ -837,7 +837,7 @@ export default function App() {
         <button className="home-discard-link" onClick={discardWorkout}>Discard workout</button>
       </section>}
       <div className="home-section-heading"><div><div className="eyebrow">THE ROTATION</div><h3>Your workouts</h3></div><span>A – D</span></div>
-      <section className="home-workout-grid">{orderedWorkouts.map(w => {
+      <section className={`home-workout-grid ${startedAt && workoutId ? "has-active-workout" : ""}`}>{orderedWorkouts.map(w => {
         const done = payload.sessions.find(s => s.workoutId === w.id && s.week === week);
         return <button className={`home-workout-tile ${done ? "is-complete" : ""}`} key={w.id} disabled={Boolean(startedAt)} onClick={() => done ? openCompletedWorkout(done) : startWorkout(w.id)}>
           <span className="home-tile-top"><b>{done ? <Check size={17}/> : w.id}</b><span>{done ? "DONE" : "WORKOUT"}</span></span>
