@@ -875,9 +875,11 @@ export default function App() {
     </> : screen === "library" ? <>
       <button className="back-button" onClick={() => setScreen("settings")}>← Back to settings</button>
       <section className="greeting"><div><div className="eyebrow">OUR SHARED EXERCISE POOL</div><h2>Exercise Library</h2><p>{EXERCISE_LIBRARY.length} exercises across your training plan.</p></div></section>
-      <input className="library-search" aria-label="Search exercises" placeholder="Search exercises or muscle groups…" value={librarySearch} onChange={e => setLibrarySearch(e.target.value)}/>
-      <div className="library-filter-group"><span className="library-filter-label">FILTER BY MUSCLE</span><div className="library-filters">{LIBRARY_FILTERS.map(filter => <button key={filter} className={libraryFilter === filter ? "selected" : ""} onClick={() => setLibraryFilter(filter)}>{filter}</button>)}</div></div>
-      <div className="library-filter-group"><span className="library-filter-label">FILTER BY PROGRAM / TYPE</span><div className="library-filters source-filters">{LIBRARY_SOURCE_FILTERS.map(filter => <button key={filter} className={librarySourceFilter === filter ? "selected" : ""} onClick={() => setLibrarySourceFilter(filter)}>{filter}</button>)}</div></div>
+      <div className="library-toolbar">
+        <input className="library-search" aria-label="Search exercises" placeholder="Search exercises or muscle groups…" value={librarySearch} onChange={e => setLibrarySearch(e.target.value)}/>
+        <div className="library-filter-group"><span className="library-filter-label">FILTER BY MUSCLE</span><div className="library-filters">{LIBRARY_FILTERS.map(filter => <button key={filter} className={libraryFilter === filter ? "selected" : ""} onClick={() => setLibraryFilter(filter)}>{filter}</button>)}</div></div>
+        <div className="library-filter-group"><span className="library-filter-label">FILTER BY PROGRAM / TYPE</span><div className="library-filters source-filters">{LIBRARY_SOURCE_FILTERS.map(filter => <button key={filter} className={librarySourceFilter === filter ? "selected" : ""} onClick={() => setLibrarySourceFilter(filter)}>{filter}</button>)}</div></div>
+      </div>
       <section className="library-list">{filteredLibrary.map(item => <article className="library-item" key={item.name}>
         <div className="library-item-heading"><div><strong>{item.name}</strong><small>{item.muscles.join(" · ")}</small></div><span>{item.sources.includes("Wild Card") ? "Wild Card" : item.sources.includes("Bonus") ? "Bonus" : "Program"}</span></div>
         <div className="library-item-meta"><span>{item.sources.join(" · ")}</span><span>{item.prescriptions.join(" / ")}</span></div>
