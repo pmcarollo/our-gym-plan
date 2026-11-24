@@ -1742,3 +1742,49 @@ button, input, select, textarea { font-family: inherit; }
     max-width: 130px;
   }
 }
+
+
+/* Keep the active rest timer above the fixed workout completion control. */
+.workout-screen-shell .rest-overlay {
+  position: fixed;
+  z-index: 29;
+  right: 18px;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  display: block;
+  min-width: 112px;
+  padding: 11px 15px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 13px;
+  background: #234c3c;
+  color: #fff;
+  box-shadow: 0 8px 26px rgba(20, 43, 33, .24);
+}
+.workout-screen-shell .rest-overlay > div {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+.workout-screen-shell .rest-overlay .eyebrow {
+  color: #c7d8c9;
+  font-size: 9px;
+}
+.workout-screen-shell .rest-overlay strong {
+  color: #fff;
+  font-size: 27px;
+  line-height: 1.1;
+}
+.workout-screen-shell .rest-overlay button {
+  min-height: 30px;
+  padding: 4px 10px;
+  color: #dce9dc;
+  font-size: 10px;
+  font-weight: 750;
+}
+@media (max-width: 380px) {
+  .workout-screen-shell .rest-overlay {
+    right: 12px;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    min-width: 104px;
+    padding: 9px 12px;
+  }
+}
