@@ -2169,3 +2169,20 @@ body:has(.app-shell:has(.settings-library-card)) {
   background: #f2f3ec;
   box-shadow: 0 5px 12px rgba(23, 59, 45, .06);
 }
+
+
+/* Exercise Library uses one sticky stack; let the brand header scroll away. */
+.scroll-screen-shell:has(.library-toolbar) .topbar {
+  position: relative;
+  top: auto;
+  margin-top: calc(-1 * max(24px, env(safe-area-inset-top)));
+  box-shadow: none;
+}
+.scroll-screen-shell:has(.library-toolbar) > .back-button {
+  top: 0;
+  z-index: 42;
+}
+.scroll-screen-shell:has(.library-toolbar) .library-toolbar {
+  top: 46px;
+  z-index: 41;
+}
