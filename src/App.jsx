@@ -823,33 +823,42 @@ export default function App() {
   return <main className="app-shell">
     <header className="topbar"><Brand /><div className="header-actions"><button className="icon-button refresh-app-button" aria-label="Refresh app and check for updates" title="Refresh app and check for updates" onClick={forceRefreshApp}><RefreshCw size={15}/></button><button className="icon-button settings-top-button" aria-label="Settings" title="Settings" onClick={() => setScreen("settings")}><Settings size={18}/></button></div></header>
     {screen === "home" ? <>
-      <section className="greeting"><div><div className="eyebrow">LET'S GET AFTER IT</div><h2>{timeGreeting}, {person}.</h2><p>Week {week} · {easternTime} Eastern</p></div><div className="week-mark"><span>WEEK</span><strong>{String(week).padStart(2,"0")}</strong></div></section>
-      <section className={`progress-card ${completedThisWeek >= 4 ? "goal-reached" : ""}`}><div className="progress-copy"><div className="eyebrow">THIS WEEK</div><strong>{completedThisWeek >= 4 ? "4 of 4 goal complete" : `${completedThisWeek} of 4 workouts`}</strong><span>{completedThisWeek >= 4 ? "Goal hit. Keep going for extra credit." : "Build your week, one workout at a time."}</span><div className="progress-track"><i style={{width:`${Math.min(completedThisWeek,4)/4*100}%`}}/></div><div className="progress-meta"><span>WEEKLY GOAL</span>{completedThisWeek > 4 ? <b className="extra-credit">+{completedThisWeek-4} EXTRA CREDIT</b> : <span>{4-completedThisWeek} TO GO</span>}</div></div><div className="progress-icon"><Trophy size={23}/></div></section>
-      <div className="section-heading"><div><div className="eyebrow">THE ROTATION</div><h3>Your workouts</h3></div><span className="muted-label">A – D</span></div>
-      <button className="history-link" onClick={() => setScreen("history")}>View workout history <ArrowRight size={17} strokeWidth={2}/></button>
-      {startedAt && workoutId && <div className="resume-workout-wrap"><button className="resume-workout" onClick={() => setScreen("workout")}><span><strong>Resume {activeWorkout?.name || "workout"}</strong><small>In-progress workout · saved on this device</small></span><ArrowRight size={18} strokeWidth={2}/></button><button className="discard-workout" onClick={discardWorkout}>Discard workout</button></div>}
-      <section className="workout-list">{orderedWorkouts.map(w => {
+      <section className="home-welcome">
+        <div className="home-greeting-copy"><div className="eyebrow">LET'S GET AFTER IT</div><h2>{timeGreeting}, {person}.</h2><p>Week {week} · {easternTime} Eastern</p></div>
+        <div className="home-header-tools"><span className="home-week-pill">WEEK {String(week).padStart(2,"0")}</span><button className="home-history-link" onClick={() => setScreen("history")}>History <ArrowRight size={15}/></button></div>
+      </section>
+      <section className={`home-progress-strip ${completedThisWeek >= 4 ? "goal-reached" : ""}`}>
+        <div className="home-progress-copy"><strong>{completedThisWeek >= 4 ? "4 of 4 workouts complete" : `${completedThisWeek} of 4 workouts`}</strong><span>{completedThisWeek >= 4 ? "Goal hit · extra credit is yours" : `${4-completedThisWeek} to go this week`}</span></div>
+        <div className="home-progress-segments" aria-label={`${completedThisWeek} of 4 workouts completed`}>{[0,1,2,3].map(i => <i key={i} className={i < Math.min(completedThisWeek,4) ? "filled" : ""}/>)}</div>
+      </section>
+      {startedAt && workoutId && <section className="home-resume-card">
+        <div className="home-resume-kicker"><span className="home-live-dot"/> WORKOUT IN PROGRESS</div>
+        <div className="home-resume-main"><div><strong>{activeWorkout?.name || "Your workout"}</strong><small>Week {week} · Saved on this device</small></div><button onClick={() => setScreen("workout")}>Resume <ArrowRight size={17}/></button></div>
+        <button className="home-discard-link" onClick={discardWorkout}>Discard workout</button>
+      </section>}
+      <div className="home-section-heading"><div><div className="eyebrow">THE ROTATION</div><h3>Your workouts</h3></div><span>A – D</span></div>
+      <section className="home-workout-grid">{orderedWorkouts.map(w => {
         const done = payload.sessions.find(s => s.workoutId === w.id && s.week === week);
-        return <button className={`workout-card ${done ? "is-complete" : ""}`} key={w.id} disabled={Boolean(startedAt)} onClick={() => done ? openCompletedWorkout(done) : startWorkout(w.id)}>
-          <span className="workout-letter">{done ? <Check size={20}/> : w.id}</span><span className="workout-info"><strong>{w.name}</strong><small>{done ? `Completed · ${new Date(done.completedAt).toLocaleDateString()} · View workout & Strava export` : w.focus}</small></span><span className="workout-arrow">{done ? <Check size={18} strokeWidth={2.5}/> : <ArrowRight size={18} strokeWidth={2}/>}</span>
+        return <button className={`home-workout-tile ${done ? "is-complete" : ""}`} key={w.id} disabled={Boolean(startedAt)} onClick={() => done ? openCompletedWorkout(done) : startWorkout(w.id)}>
+          <span className="home-tile-top"><b>{done ? <Check size={17}/> : w.id}</b><span>{done ? "DONE" : "WORKOUT"}</span></span>
+          <strong>{w.name}</strong><small>{done ? "Completed · View details" : w.focus}</small>
+          <span className="home-tile-arrow">{done ? <Check size={16}/> : <ArrowRight size={16}/>}</span>
         </button>;
       })}</section>
-      <div className="wild-card-section">
-        <div className="wild-card-heading"><div><div className="eyebrow">WHEN YOU WANT SOMETHING DIFFERENT</div><strong>Wild Card</strong><small>Fresh push, pull, legs and finisher combinations, drawn from a separate exercise pool.</small></div><span className="wild-card-spark">✦</span></div>
-        <button className={`wild-card-button ${wildCardCompleted ? "is-complete" : ""}`} disabled={Boolean(startedAt)} onClick={startWildCardWorkout}><span>{wildCardCompleted ? "Generate another Wild Card" : "Generate a Wild Card workout"}</span><ArrowRight size={19} strokeWidth={2}/></button>
-        <p className="wild-card-note">Shared weekly workout · counts toward your 4-workout goal · extra sessions earn bonus credit</p>
-      </div>
-      <div className="week-navigation">
+      <section className="home-wild-card">
+        <span className="home-wild-icon">✦</span><div className="home-wild-copy"><strong>Wild Card</strong><small>Mix it up with a bonus full-body session</small></div>
+        <button className={wildCardCompleted ? "is-complete" : ""} disabled={Boolean(startedAt)} onClick={startWildCardWorkout}>{wildCardCompleted ? "New session" : "Generate"} <ArrowRight size={15}/></button>
+      </section>
+      <div className="home-bottom-row">
         <button className="previous-week-button" onClick={previousWeek} disabled={week <= 1}>← Previous week</button>
         <button className="next-week-button" onClick={() => {
           const next = week + 1;
           const exists = (payload.sessions || []).some(session => session.week === next) || PROGRAM.some(workout => sharedProgram.supersetOrder?.['w' + next + '-' + workout.id]);
           if (exists) nextWeek(); else setActiveModal({ eyebrow: "MOVE FORWARD", title: "Start week " + (week + 1) + "?", description: "This resets the current workout checkmarks and shuffles the superset and core order for the new week. Your completed workout history and saved weights stay intact.", confirmLabel: "Start week " + (week + 1), onConfirm: nextWeek });
-        }}><RotateCcw size={15}/> {((payload.sessions || []).some(session => session.week === week + 1) || PROGRAM.some(workout => sharedProgram.supersetOrder?.['w' + (week + 1) + '-' + workout.id])) ? `Go to week ${week+1}` : `Start week ${week+1}`}</button>
+        }}><RotateCcw size={14}/> {((payload.sessions || []).some(session => session.week === week + 1) || PROGRAM.some(workout => sharedProgram.supersetOrder?.['w' + (week + 1) + '-' + workout.id])) ? `Week ${week+1}` : `Start week ${week+1}`}</button>
       </div>
-
-      {busy && <p className="muted-label">Syncing…</p>}
-    </> : screen === "settings" ? <>
+      {busy && <p className="home-syncing">Syncing…</p>}
+    </></> : screen === "settings" ? <>
       <button className="back-button" onClick={() => setScreen("home")}>← Back to workouts</button>
       <section className="greeting"><div><div className="eyebrow">PREFERENCES & REFERENCES</div><h2>Settings</h2><p>Tools and information for your training plan.</p></div></section>
       <button className="settings-library-card" onClick={() => setScreen("library")}><span className="settings-library-icon"><Library size={22}/></span><span><strong>Exercise Library</strong><small>{EXERCISE_LIBRARY.length} exercises · browse by muscle group, workout and training type</small></span><ArrowRight size={19}/></button>
