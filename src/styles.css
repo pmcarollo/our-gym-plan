@@ -1583,3 +1583,162 @@ button, input, select, textarea { font-family: inherit; }
     margin-top: 14px;
   }
 }
+
+
+/* Final live-workout consistency pass: tighter rhythm, clear exercise hierarchy. */
+.workout-screen-shell .workout-heading {
+  padding-top: 15px;
+  padding-bottom: 12px;
+}
+.workout-screen-shell .workout-heading h2 {
+  margin: 4px 0 3px;
+  font-size: clamp(27px, 7vw, 33px);
+}
+.workout-screen-shell .workout-heading p {
+  font-size: 11px;
+}
+.workout-screen-shell .live-progress-card {
+  margin-bottom: 13px;
+  padding: 12px 14px;
+  border-radius: var(--gym-radius-md);
+}
+.workout-screen-shell .live-progress-top strong {
+  font-family: inherit;
+  font-size: 23px;
+  font-weight: 850;
+  letter-spacing: -.04em;
+}
+.workout-screen-shell .live-progress-status {
+  font-size: 10px;
+}
+.workout-screen-shell .live-progress-track {
+  margin-top: 9px;
+}
+.workout-screen-shell .live-progress-bottom {
+  margin-top: 7px;
+  font-size: 10px;
+}
+.workout-screen-shell .workout-controls {
+  gap: 7px;
+  margin-bottom: 12px;
+}
+.workout-screen-shell .workout-requirement,
+.workout-screen-shell .workout-started {
+  font-size: 10px;
+}
+.workout-screen-shell .superset-list {
+  gap: 12px;
+}
+.workout-screen-shell .superset-card {
+  padding: 13px;
+  border-radius: var(--gym-radius-md);
+  box-shadow: var(--gym-shadow-soft);
+}
+.workout-screen-shell .superset-card > header {
+  gap: 10px;
+  margin-bottom: 5px;
+}
+.workout-screen-shell .superset-heading-copy .eyebrow {
+  font-size: 9px;
+}
+.workout-screen-shell .pair-progress-label {
+  font-size: 10px;
+}
+.workout-screen-shell .pair-check {
+  min-height: 42px;
+  padding: 8px 11px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+.workout-screen-shell .exercise-row {
+  padding: 12px 0;
+  row-gap: 7px;
+}
+.workout-screen-shell .exercise-name strong {
+  font-size: 13px;
+  line-height: 1.3;
+}
+.workout-screen-shell .exercise-name small {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  line-height: 1.35;
+}
+.workout-screen-shell .weight-input {
+  min-height: 46px;
+  border-radius: 10px;
+}
+.workout-screen-shell .weight-input input {
+  min-height: 36px;
+  font-size: 17px;
+}
+.workout-screen-shell .exercise-guide summary {
+  min-height: 42px;
+  font-size: 11px;
+}
+.workout-screen-shell .rest-button {
+  min-height: 38px;
+  margin-top: 3px;
+  border-radius: 9px;
+  font-size: 10px;
+}
+.workout-screen-shell .core-break {
+  margin: 8px 0 0;
+  padding: 11px 12px;
+  border-radius: 11px;
+}
+.workout-screen-shell .core-break-copy .eyebrow {
+  font-size: 9px;
+}
+.workout-screen-shell .core-break-copy > strong {
+  font-size: 13px;
+}
+.workout-screen-shell .core-break-copy small {
+  font-size: 10px;
+  line-height: 1.35;
+}
+.workout-screen-shell .core-actions {
+  gap: 7px;
+}
+.workout-screen-shell .core-actions button {
+  min-height: 38px;
+  padding: 7px 11px;
+  font-size: 10px;
+}
+.workout-screen-shell .bonus-card {
+  margin-top: 12px;
+  border-radius: var(--gym-radius-md);
+}
+.workout-screen-shell .bonus-toggle {
+  min-height: 68px;
+  padding: 12px 13px;
+}
+.workout-screen-shell .bonus-toggle strong {
+  font-size: 15px;
+}
+.workout-screen-shell .bonus-toggle small {
+  font-size: 10px;
+}
+.workout-screen-shell .bonus-content {
+  padding: 0 13px 13px;
+}
+.workout-screen-shell .small-note {
+  margin: 10px 0 0;
+  padding-bottom: 6px;
+  font-size: 10px;
+}
+@media (max-width: 380px) {
+  .workout-screen-shell .superset-card {
+    padding: 11px;
+  }
+  .workout-screen-shell .exercise-row {
+    grid-template-columns: minmax(0, 1fr) 84px;
+    column-gap: 8px;
+  }
+  .workout-screen-shell .weight-input {
+    width: 84px;
+  }
+  .workout-screen-shell .live-progress-status {
+    max-width: 130px;
+  }
+}
