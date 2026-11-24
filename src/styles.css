@@ -1269,3 +1269,39 @@ button, input, select, textarea { font-family: inherit; }
   .home-bottom-row { padding-top: 12px; }
   .home-workout-tile { min-height: 102px; }
 }
+
+/* Balanced vertical rhythm for the full-height home dashboard. */
+.app-shell:has(.home-welcome) {
+  justify-content: flex-start;
+}
+.home-welcome {
+  padding-top: clamp(20px, 3dvh, 28px);
+  padding-bottom: clamp(16px, 2.2dvh, 22px);
+}
+.home-progress-strip {
+  margin-bottom: clamp(19px, 3dvh, 27px);
+}
+.home-section-heading {
+  margin-bottom: clamp(11px, 1.7dvh, 15px);
+}
+.home-workout-grid {
+  gap: clamp(10px, 1.6dvh, 14px);
+}
+.home-workout-tile {
+  min-height: clamp(120px, 16dvh, 145px);
+  padding: 13px;
+}
+.home-wild-card {
+  margin-top: clamp(15px, 2.2dvh, 21px);
+}
+.home-bottom-row {
+  margin-top: clamp(16px, 2.5dvh, 24px);
+  padding-top: 0;
+}
+@media (max-height: 700px) {
+  .home-welcome { padding-top: 14px; padding-bottom: 12px; }
+  .home-progress-strip { margin-bottom: 15px; }
+  .home-workout-tile { min-height: 104px; }
+  .home-wild-card { margin-top: 12px; }
+  .home-bottom-row { margin-top: 12px; }
+}
