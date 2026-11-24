@@ -2051,3 +2051,30 @@ body:has(.app-shell:has(.settings-library-card)) {
 .home-quick-links .home-history-link svg {
   flex: 0 0 auto;
 }
+
+
+/* Hard-lock Settings to the viewport; no document or shell scroll surface. */
+html:has(.app-shell:has(.settings-library-card)),
+body:has(.app-shell:has(.settings-library-card)) {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+.app-shell:has(.settings-library-card) {
+  position: fixed !important;
+  inset: 0 !important;
+  width: min(calc(100% - 30px), 590px) !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  max-height: 100dvh !important;
+  margin: 0 auto !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  touch-action: pan-x !important;
+}
