@@ -858,7 +858,7 @@ export default function App() {
         }}><RotateCcw size={14}/> {((payload.sessions || []).some(session => session.week === week + 1) || PROGRAM.some(workout => sharedProgram.supersetOrder?.['w' + (week + 1) + '-' + workout.id])) ? `Week ${week+1}` : `Start week ${week+1}`}</button>
       </div>
       {busy && <p className="home-syncing">Syncing…</p>}
-    </></> : screen === "settings" ? <>
+    </> : screen === "settings" ? <>
       <button className="back-button" onClick={() => setScreen("home")}>← Back to workouts</button>
       <section className="greeting"><div><div className="eyebrow">PREFERENCES & REFERENCES</div><h2>Settings</h2><p>Tools and information for your training plan.</p></div></section>
       <button className="settings-library-card" onClick={() => setScreen("library")}><span className="settings-library-icon"><Library size={22}/></span><span><strong>Exercise Library</strong><small>{EXERCISE_LIBRARY.length} exercises · browse by muscle group, workout and training type</small></span><ArrowRight size={19}/></button>
