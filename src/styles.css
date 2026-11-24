@@ -2078,3 +2078,41 @@ body:has(.app-shell:has(.settings-library-card)) {
   overscroll-behavior: none !important;
   touch-action: pan-x !important;
 }
+
+
+/* Keep the complete exercise-library search and both filter rows below the pinned brand bar. */
+.scroll-screen-shell .library-toolbar {
+  position: sticky;
+  top: 82px;
+  z-index: 30;
+  align-self: stretch;
+  background: rgba(242, 243, 236, .98);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+.scroll-screen-shell .library-toolbar .library-search {
+  display: block;
+  width: 100%;
+}
+.scroll-screen-shell .library-toolbar .library-filter-group,
+.scroll-screen-shell .library-toolbar .library-filter-group + .library-filter-group {
+  display: block;
+  position: relative;
+}
+.scroll-screen-shell .library-toolbar .library-filter-group .library-filters {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-screen-shell .library-toolbar .library-filter-group .library-filters::-webkit-scrollbar {
+  display: none;
+}
+@media (max-width: 600px) {
+  .scroll-screen-shell .library-toolbar {
+    top: 82px;
+  }
+}
