@@ -1305,3 +1305,38 @@ button, input, select, textarea { font-family: inherit; }
   .home-wild-card { margin-top: 12px; }
   .home-bottom-row { margin-top: 12px; }
 }
+
+
+/* Compact workout choices while a saved workout is waiting to be resumed. */
+.home-workout-grid.has-active-workout {
+  gap: 9px;
+}
+.home-workout-grid.has-active-workout .home-workout-tile {
+  min-height: clamp(88px, 11dvh, 104px);
+  padding: 9px 11px;
+  gap: 3px;
+}
+.home-workout-grid.has-active-workout .home-tile-top b {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+}
+.home-workout-grid.has-active-workout .home-workout-tile > strong {
+  font-size: 12px;
+}
+.home-workout-grid.has-active-workout .home-workout-tile > small {
+  font-size: 8px;
+}
+.home-workout-grid.has-active-workout .home-tile-arrow {
+  right: 9px;
+  bottom: 7px;
+}
+.home-workout-grid.has-active-workout + .home-wild-card {
+  margin-top: 12px;
+}
+@media (max-height: 700px) {
+  .home-workout-grid.has-active-workout .home-workout-tile {
+    min-height: 82px;
+    padding: 8px 9px;
+  }
+}
