@@ -1245,3 +1245,27 @@ button, input, select, textarea { font-family: inherit; }
 .home-discard-link{margin:6px 0 0;padding:2px 0;border:0;background:transparent;color:#94604f;font-size:9px;text-decoration:underline}
 @media(max-width:380px){.home-workout-tile{min-height:104px;padding:9px}.home-wild-copy small{font-size:8px}.home-progress-strip{padding:10px 11px}}
 @media(min-height:850px){.home-workout-tile{min-height:120px}}
+
+
+/* iPhone home-screen layout: use the full safe viewport without stretching content. */
+.app-shell:has(.home-welcome) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+.home-bottom-row {
+  margin-top: auto;
+  padding-top: clamp(16px, 3dvh, 30px);
+}
+@media (min-height: 780px) {
+  .home-workout-tile {
+    min-height: clamp(112px, 14dvh, 136px);
+    padding: 13px;
+  }
+}
+@media (max-height: 700px) {
+  .home-bottom-row { padding-top: 12px; }
+  .home-workout-tile { min-height: 102px; }
+}
