@@ -2155,3 +2155,17 @@ body:has(.app-shell:has(.settings-library-card)) {
 .scroll-screen-shell .library-toolbar .library-filter-group .library-filters button {
   min-height: 34px;
 }
+
+
+/* Library sticky stack: brand header, back action, then the complete search/filter toolbar. */
+.scroll-screen-shell:has(.library-toolbar) > .back-button {
+  top: 136px;
+  z-index: 42;
+}
+.scroll-screen-shell:has(.library-toolbar) .library-toolbar {
+  top: 182px;
+  z-index: 41;
+  margin-top: 0;
+  background: #f2f3ec;
+  box-shadow: 0 5px 12px rgba(23, 59, 45, .06);
+}
