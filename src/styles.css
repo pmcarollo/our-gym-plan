@@ -2394,3 +2394,193 @@ body:has(.app-shell:has(.settings-library-card)) {
   .progress-calendar { gap: 6px; padding: 10px; }
   .focused-workout-nav button { padding-inline: 8px; font-size: 10px; }
 }
+
+
+/* Focused workout v2: one compact viewport per superset/core page. */
+html:has(.workout-screen-shell), body:has(.workout-screen-shell) {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+.app-shell.workout-screen-shell {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  overscroll-behavior: none !important;
+}
+.workout-screen-shell > .topbar { flex: 0 0 auto; }
+.workout-screen-shell > .back-button {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 5px 0;
+  margin: 0;
+  background: #f2f3ec;
+}
+.workout-screen-shell .workout-heading {
+  flex: 0 0 auto;
+  padding: 5px 0 7px;
+}
+.workout-screen-shell .workout-heading h2 {
+  margin: 2px 0;
+  font-size: clamp(22px, 6vw, 29px);
+}
+.workout-screen-shell .workout-heading p { margin: 0; font-size: 10px; }
+.workout-screen-shell .live-progress-card {
+  position: static;
+  flex: 0 0 auto;
+  margin: 4px 0 6px;
+  padding: 8px 11px;
+}
+.workout-screen-shell .live-progress-top strong { font-size: 19px; }
+.workout-screen-shell .live-progress-track { margin: 5px 0; }
+.workout-screen-shell .live-progress-bottom { font-size: 9px; }
+.workout-screen-shell .workout-controls {
+  flex: 0 0 auto;
+  margin: 0 0 3px;
+  padding: 0;
+  min-height: 14px;
+}
+.workout-screen-shell .workout-datetime { display: none !important; }
+.workout-screen-shell .workout-requirement { font-size: 9px; }
+.workout-screen-shell .workout-started { display: none; }
+.workout-screen-shell .focused-workout {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  margin: 2px 0 0;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.workout-screen-shell .focused-workout-nav { flex: 0 0 auto; margin-bottom: 2px; }
+.workout-screen-shell .focused-workout-nav button { min-height: 34px; padding: 5px 9px; }
+.workout-screen-shell .focused-workout-nav > div strong { font-size: 11px; }
+.workout-screen-shell .focused-workout-dots { flex: 0 0 auto; gap: 8px; padding: 4px 0 7px; }
+.workout-screen-shell .focused-workout-dots button { width: 7px; height: 7px; }
+.workout-screen-shell .focused-workout-page {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.workout-screen-shell .focused-superset-card,
+.workout-screen-shell .focused-core-card {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0;
+  padding: 9px 12px;
+  overflow: hidden;
+}
+.workout-screen-shell .focused-superset-card > header { flex: 0 0 auto; margin-bottom: 2px; }
+.workout-screen-shell .focused-superset-card > header .pair-check { min-height: 34px; padding: 5px 9px; font-size: 10px; }
+.workout-screen-shell .focused-superset-card .exercise-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 78px;
+  gap: 4px 8px;
+  padding: 6px 0;
+}
+.workout-screen-shell .focused-superset-card .exercise-name strong { font-size: 13px; }
+.workout-screen-shell .focused-superset-card .exercise-name small { font-size: 9px; }
+.workout-screen-shell .focused-superset-card .weight-input {
+  width: 78px;
+  min-height: 34px;
+  padding: 3px 5px;
+  font-size: 10px;
+}
+.workout-screen-shell .focused-superset-card .weight-input input { font-size: 12px; }
+.workout-screen-shell .focused-superset-card .last-used-weight { display: none; }
+.workout-screen-shell .exercise-set-progress { display: block; margin-top: 2px; color: #6d806f; font-size: 9px; font-weight: 750; }
+.workout-screen-shell .set-tracking-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 4px 7px;
+  margin: 2px 0;
+  padding: 5px;
+  border-radius: 9px;
+}
+.workout-screen-shell .set-tracking-row {
+  grid-template-columns: minmax(0,1fr) minmax(48px,65px) 13px;
+  gap: 3px;
+  padding: 2px 0;
+}
+.workout-screen-shell .set-tracking-row label { gap: 4px; font-size: 9px; }
+.workout-screen-shell .set-tracking-row input[type="checkbox"] { width: 17px; height: 17px; }
+.workout-screen-shell .set-tracking-row input:not([type="checkbox"]) { padding: 5px 3px; font-size: 10px; }
+.workout-screen-shell .set-tracking-row > span { font-size: 8px; }
+.workout-screen-shell .set-tracking-row.set-is-complete { opacity: .7; }
+.workout-screen-shell .focused-superset-card .exercise-guide { display: none; }
+.workout-screen-shell .focused-superset-card .rest-button {
+  flex: 0 0 auto;
+  min-height: 30px;
+  margin-top: auto;
+  padding: 5px 9px;
+}
+.workout-screen-shell .focused-core-card { justify-content: center; gap: 16px; padding: 22px; }
+.workout-screen-shell .focused-core-card .core-break-copy strong { font-size: 24px; }
+.workout-screen-shell .focused-core-card .core-break-copy small { font-size: 12px; line-height: 1.5; }
+.workout-screen-shell .focused-core-card .exercise-guide { display: block; }
+.workout-screen-shell .core-page-status { color: #6e806e; font-size: 10px; }
+.workout-screen-shell .focused-workout-footer {
+  flex: 0 0 auto;
+  margin: 5px 1px 5px;
+}
+.workout-screen-shell .focused-workout-footer button { min-height: 34px; padding: 5px 10px; }
+.workout-screen-shell .complete-button {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 45 !important;
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  min-height: 48px !important;
+  margin: 5px 0 0 !important;
+  box-shadow: 0 -6px 18px rgba(20,45,32,.09);
+}
+.workout-screen-shell .rest-overlay { bottom: calc(66px + env(safe-area-inset-bottom)); }
+.completion-modal-backdrop { z-index: 70; }
+.completion-modal { text-align: left; }
+.completion-modal .completion-datetime {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+.completion-modal .completion-datetime label {
+  display: grid;
+  gap: 7px;
+  color: #718074;
+  font-size: 11px;
+  font-weight: 750;
+}
+.completion-modal .completion-datetime input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid #d7e0d3;
+  border-radius: 9px;
+  background: #fffefa;
+  color: #234c3c;
+  font-size: 13px;
+}
+.completion-modal .modal-actions { display: grid; grid-template-columns: 1fr 1fr; }
+@media (max-height: 740px) {
+  .workout-screen-shell .focused-superset-card .exercise-row { padding: 3px 0; }
+  .workout-screen-shell .focused-superset-card .set-tracking-panel { gap: 2px 5px; padding: 3px; }
+  .workout-screen-shell .focused-workout-dots { padding-bottom: 4px; }
+}
+@media (max-width: 380px) {
+  .completion-modal .completion-datetime { gap: 7px; }
+  .completion-modal .completion-datetime input { padding: 6px 4px; font-size: 11px; }
+}
