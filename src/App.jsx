@@ -847,15 +847,19 @@ export default function App() {
   }
   function renderLiveExercise(name, detail) {
     const count = Number((detail.match(/(\d+)\s+sets?/i) || [])[1]) || 4;
+    const suggestedWeight = lastUsedWeight(name);
     const tracking = currentWorkoutSets[name]?.enabled ? currentWorkoutSets[name] : {
       enabled: true,
-      sets: Array.from({ length: count }, () => ({ weight: currentWorkoutWeights[name] || lastUsedWeight(name) || "", completed: false }))
+      sets: Array.from({ length: count }, () => ({ weight: currentWorkoutWeights[name] || suggestedWeight || "", completed: false }))
     };
     const completedSets = tracking.sets.filter(set => set.completed).length;
     const individualWeights = Boolean(tracking.individualWeights);
     return <div className="exercise-row" key={name}>
       <div className="exercise-name"><strong>{name}</strong><small>{detail}</small><span className="exercise-set-progress">{completedSets} of {tracking.sets.length} sets</span></div>
-      <label className="weight-input"><input aria-label={name + " workout weight " + exerciseMetric(name)} inputMode="decimal" placeholder="Weight" value={currentWorkoutWeights[name] || ""} onChange={e => updateWeight(name,e.target.value)}/><span>{exerciseMetric(name)}</span>{lastUsedWeight(name) !== "" && <small className="last-used-weight">Last: {lastUsedWeight(name)} {exerciseMetric(name)}</small>}</label>
+      <div className="workout-weight-entry">
+        <label className="weight-input"><input aria-label={name + " workout weight " + exerciseMetric(name)} inputMode="decimal" placeholder="Weight" value={currentWorkoutWeights[name] ?? suggestedWeight ?? ""} onChange={e => updateWeight(name,e.target.value)}/><span>{exerciseMetric(name)}</span></label>
+        {suggestedWeight !== "" && <button type="button" className="last-weight-suggestion" onClick={() => updateWeight(name,String(suggestedWeight))}>Last time: {suggestedWeight} {exerciseMetric(name)} · Use</button>}
+      </div>
       <div className="set-tracking-panel compact-set-panel">{tracking.sets.map((set,index) => <div className={"set-tracking-row " + (set.completed ? "set-is-complete" : "")} key={index}><label><input type="checkbox" checked={set.completed} onChange={e => updateLiveSet(name,index,{completed:e.target.checked})}/><span>Set {index+1}</span></label>{individualWeights && <><input aria-label={name + " set " + (index+1) + " " + exerciseMetric(name)} inputMode="decimal" placeholder="Weight" value={set.weight} onChange={e => updateLiveSet(name,index,{weight:e.target.value})}/><span>{exerciseMetric(name)}</span></>}</div>)}</div>
       <button type="button" className="individual-weight-toggle" aria-expanded={individualWeights} onClick={() => setCurrentWorkoutSets(current => ({ ...current, [name]: { ...tracking, individualWeights: !individualWeights } }))}>{individualWeights ? "Use one weight for all sets" : "Customize individual set weights"}</button>
       <ExerciseGuide name={name}/>
