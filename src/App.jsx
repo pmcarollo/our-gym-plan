@@ -1140,8 +1140,8 @@ export default function App() {
     </>}
     {trackerModal && <div className="modal-backdrop tracker-modal-backdrop" role="presentation" onClick={() => setTrackerModal(false)}>
       <section className="confirm-modal tracker-modal" role="dialog" aria-modal="true" aria-labelledby="tracker-modal-title" onClick={e => e.stopPropagation()}>
-        <div className="tracker-modal-icon"><Dumbbell size={24}/></div><div className="eyebrow">BEFORE YOU BEGIN</div><h3 id="tracker-modal-title">Ready to get after it?</h3>
-        <p>Remember to start your {payload.trackerPrefs?.name || (person === "Paul" ? "Garmin watch" : "workout tracker")} so your activity is captured.</p>
+        <div className="tracker-modal-icon"><Dumbbell size={24}/></div><div className="eyebrow">BEFORE YOU BEGIN</div><h3 id="tracker-modal-title">Start your {payload.trackerPrefs?.name || (person === "Paul" ? "Garmin watch" : "workout tracker")}</h3>
+        <p>Make sure your activity is being tracked, then you're ready to go.</p>
         <div className="modal-actions"><button className="modal-cancel" onClick={() => setTrackerModal(false)}>Skip reminder</button><button className="modal-confirm" onClick={() => setTrackerModal(false)}>Let's go</button></div>
       </section>
     </div>}
