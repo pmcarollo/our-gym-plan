@@ -2738,3 +2738,27 @@ body:has(.workout-screen-shell) {
 .workout-screen-shell .compact-set-panel:has(input:not([type="checkbox"])) {
   grid-template-columns: repeat(2,minmax(0,1fr)) !important;
 }
+
+
+/* Restore last-session weight suggestions in the compact workout editor. */
+.workout-screen-shell .workout-weight-entry {
+  display: grid;
+  justify-items: end;
+  align-content: start;
+  gap: 3px;
+  min-width: 105px;
+}
+.workout-screen-shell .workout-weight-entry .weight-input { margin: 0; }
+.workout-screen-shell .last-weight-suggestion {
+  display: inline-block;
+  max-width: 150px;
+  padding: 2px 3px;
+  border: 0;
+  background: transparent;
+  color: #64806a;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+.workout-screen-shell .focused-superset-card .last-used-weight { display: inline !important; }
