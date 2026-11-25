@@ -2905,3 +2905,15 @@ body:has(.workout-screen-shell) {
 .workout-screen-shell {
   padding-bottom: calc(58px + env(safe-area-inset-bottom)) !important;
 }
+
+
+/* Prevent iOS Safari focus zoom: editable workout inputs must render at 16px+. */
+.workout-screen-shell input,
+.workout-screen-shell textarea,
+.workout-screen-shell select {
+  font-size: 16px !important;
+}
+.workout-screen-shell .weight-input input,
+.workout-screen-shell .set-tracking-row input:not([type="checkbox"]) {
+  font-size: 16px !important;
+}
