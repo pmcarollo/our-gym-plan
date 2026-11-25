@@ -458,7 +458,7 @@ export default function App() {
       const next = { ...current };
       activeWorkout.pairs.flat().forEach(([name, detail]) => {
         if (next[name]?.enabled && Array.isArray(next[name].sets)) return;
-        const count = Number((detail.match(/(\\d+)\\s+sets?/i) || [])[1]) || 4;
+        const count = Number((detail.match(/(\d+)\s+sets?/i) || [])[1]) || 4;
         const initialWeight = currentWorkoutWeights[name] || lastUsedWeight(name) || "";
         next[name] = { enabled: true, sets: Array.from({ length: Math.min(count, 12) }, () => ({ weight: initialWeight, completed: false })) };
         changed = true;
@@ -676,7 +676,7 @@ export default function App() {
     const complete = pair.every((_, exerciseIndex) => done[exerciseKey(workoutId, pairIndex, exerciseIndex)]);
     const nextSets = { ...currentWorkoutSets };
     pair.forEach(([name, detail], exerciseIndex) => {
-      const count = Number((detail.match(/(\\d+)\\s+sets?/i) || [])[1]) || 4;
+      const count = Number((detail.match(/(\d+)\s+sets?/i) || [])[1]) || 4;
       const entry = nextSets[name]?.enabled ? nextSets[name] : { enabled: true, sets: Array.from({ length: count }, () => ({ weight: currentWorkoutWeights[name] || "", completed: false })) };
       nextSets[name] = { ...entry, enabled: true, sets: entry.sets.map(set => ({ ...set, completed: !complete })) };
       if (!complete) done[exerciseKey(workoutId, pairIndex, exerciseIndex)] = true;
@@ -846,7 +846,7 @@ export default function App() {
     setTrackerNameDraft(trackerPrefs.name);
   }
   function renderLiveExercise(name, detail) {
-    const count = Number((detail.match(/(\\d+)\\s+sets?/i) || [])[1]) || 4;
+    const count = Number((detail.match(/(\d+)\s+sets?/i) || [])[1]) || 4;
     const tracking = currentWorkoutSets[name]?.enabled ? currentWorkoutSets[name] : {
       enabled: true,
       sets: Array.from({ length: count }, () => ({ weight: currentWorkoutWeights[name] || lastUsedWeight(name) || "", completed: false }))
