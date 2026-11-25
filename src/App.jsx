@@ -1098,13 +1098,22 @@ export default function App() {
         const coreStatus = core ? payload.coreStatus?.[startedAt + "-" + core[0]] : null;
         const goToStep = next => setActiveWorkoutStep(Math.max(0, Math.min(steps.length - 1, next)));
         const stepLabel = step.type === "core" ? "Optional core" : step.type === "bonus" || step.type === "bonus-gate" ? "Feeling saucy?" : "Superset " + (step.displayIndex + 1);
-        return <section className="focused-workout" onTouchStart={event => { const touch = event.touches[0]; workoutTouchStart.current = { x: touch.clientX, y: touch.clientY }; }} onTouchEnd={event => {
+        return <section className="focused-workout" onTouchStart={event => {
+          if (event.touches.length !== 1) { workoutTouchStart.current = null; return; }
+          const touch = event.touches[0];
+          const target = event.target;
+          const interactive = target instanceof Element && target.closest("input,button,textarea,select,[contenteditable=true]");
+          workoutTouchStart.current = interactive ? null : { x: touch.clientX, y: touch.clientY };
+        }} onTouchEnd={event => {
           const startPoint = workoutTouchStart.current; workoutTouchStart.current = null;
-          if (!startPoint || !event.changedTouches.length) return;
+          if (!startPoint || event.changedTouches.length !== 1) return;
           const touch = event.changedTouches[0];
           const dx = touch.clientX - startPoint.x, dy = touch.clientY - startPoint.y;
-          if (!event.target.closest("input,button,textarea,select,[contenteditable=true]") && Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.25) goToStep(stepIndex + (dx < 0 ? 1 : -1));
-        }}>
+          const horizontalDistance = Math.abs(dx), verticalDistance = Math.abs(dy);
+          if (horizontalDistance >= 48 && verticalDistance <= 60 && horizontalDistance > verticalDistance * 1.3) {
+            goToStep(stepIndex + (dx < 0 ? 1 : -1));
+          }
+        }} onTouchCancel={() => { workoutTouchStart.current = null; }}>
           <div className="focused-workout-nav">
             <button onClick={() => goToStep(stepIndex - 1)} disabled={stepIndex === 0}>← Previous</button>
             <div><span className="eyebrow">{stepLabel.toUpperCase()}</span><strong>{stepIndex + 1} of {steps.length}</strong></div>
