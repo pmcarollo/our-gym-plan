@@ -2876,3 +2876,10 @@ body:has(.workout-screen-shell) {
 .workout-screen-shell .bonus-reveal-button strong {
   font-size: 14px !important;
 }
+
+
+/* Retire the rest timer UI; it is intentionally removed from the workout flow. */
+.workout-screen-shell .rest-quick-action,
+.workout-screen-shell .rest-overlay {
+  display: none !important;
+}
