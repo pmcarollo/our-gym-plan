@@ -2809,3 +2809,70 @@ body:has(.workout-screen-shell) {
   width: min(calc(100vw - 36px), 560px) !important;
   margin: 0 !important;
 }
+
+
+/* Final polish: full last-session label, reachable rest control, and optional bonus reveal. */
+.workout-screen-shell .focused-superset-card .exercise-row {
+  grid-template-columns: minmax(0,1fr) minmax(126px,138px) !important;
+  column-gap: 7px !important;
+}
+.workout-screen-shell .workout-weight-entry {
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 138px !important;
+  gap: 4px !important;
+}
+.workout-screen-shell .last-weight-suggestion {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+  text-align: right !important;
+  font-size: 10px !important;
+  padding: 2px 0 !important;
+}
+.workout-screen-shell .rest-quick-action {
+  position: fixed !important;
+  right: 18px !important;
+  bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+  z-index: 59 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  min-height: 38px !important;
+  padding: 8px 12px !important;
+  border: 1px solid #dce4d8 !important;
+  border-radius: 999px !important;
+  background: #fffefa !important;
+  color: #56735e !important;
+  box-shadow: 0 3px 12px rgba(30,55,40,.12) !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+}
+.workout-screen-shell .bonus-reveal-button {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 5px !important;
+  width: 100% !important;
+  margin: 12px 0 8px !important;
+  padding: 14px 16px !important;
+  border: 1px dashed #b9cbb9 !important;
+  border-radius: 14px !important;
+  background: #f4f7ef !important;
+  color: #315c47 !important;
+  text-align: left !important;
+}
+.workout-screen-shell .bonus-reveal-button span {
+  color: #718574 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+}
+.workout-screen-shell .bonus-reveal-button strong {
+  font-size: 14px !important;
+}
