@@ -923,21 +923,44 @@ export default function App() {
     </> : screen === "progress" ? <>
       <button className="back-button" onClick={() => setScreen("home")}>← Back to workouts</button>
       <section className="greeting"><div><div className="eyebrow">THE WORK ADDS UP</div><h2>Your progress</h2><p>A simple look at consistency and strength trends.</p></div></section>
-      <section className="progress-summary-grid">
-        <article className="progress-summary-card"><span>ALL-TIME WORKOUTS</span><strong>{payload.sessions?.length || 0}</strong><small>Completed sessions</small></article>
-        <article className="progress-summary-card"><span>LAST 28 DAYS</span><strong>{sessionsLast28Days}</strong><small>Recent consistency</small></article>
-        <article className="progress-summary-card"><span>THIS WEEK</span><strong>{completedThisWeek}<i> / 4</i></strong><small>{completedThisWeek >= 4 ? "Weekly target reached" : "Workouts completed"}</small></article>
-      </section>
-      <div className="progress-section-heading"><div><span className="eyebrow">STRENGTH TRACKER</span><h3>Recent lift progress</h3></div><span>Latest vs. previous</span></div>
-      <section className="progress-exercise-list">
-        {progressExerciseRows.map(item => <article className="progress-exercise-card" key={item.name}>
-          <div className="progress-exercise-copy"><strong>{item.name}</strong><small>{item.count} logged {item.count === 1 ? "session" : "sessions"} · {item.latest.date ? new Date(item.latest.date).toLocaleDateString([], {month:"short",day:"numeric"}) : "Date unavailable"}</small></div>
-          <div className="progress-exercise-value"><strong>{item.latest.value} <small>lb</small></strong>{item.previous ? <span className={item.change > 0 ? "is-up" : item.change < 0 ? "is-down" : ""}>{item.change > 0 ? "+" : ""}{item.change} lb</span> : <span>First entry</span>}</div>
-        </article>)}
-        {!progressExerciseRows.length && <div className="progress-empty-state"><strong>Your strength trends will show up here.</strong><p>Log weights during a few workouts and we'll compare your latest entries with the previous ones.</p></div>}
-      </section>
-      <p className="progress-footnote">Comparisons use the latest recorded working weight for each exercise. They are a snapshot, not a measure of total training volume.</p>
-    </> : screen === "history" ? <>
+      <div className="progress-tabs" role="tablist" aria-label="Workout progress views">
+        {[["overview","Overview"],["strength","Strength"],["consistency","Consistency"]].map(([id,label]) => <button key={id} role="tab" aria-selected={progressTab === id} className={progressTab === id ? "selected" : ""} onClick={() => setProgressTab(id)}>{label}</button>)}
+      </div>
+      {progressTab === "overview" && <>
+        <section className="progress-summary-grid">
+          <article className="progress-summary-card"><span>ALL-TIME WORKOUTS</span><strong>{payload.sessions?.length || 0}</strong><small>Completed sessions</small></article>
+          <article className="progress-summary-card"><span>LAST 28 DAYS</span><strong>{sessionsLast28Days}</strong><small>Recent consistency</small></article>
+          <article className="progress-summary-card"><span>THIS WEEK</span><strong>{completedThisWeek}<i> / 4</i></strong><small>{completedThisWeek >= 4 ? "Weekly target reached" : "Workouts completed"}</small></article>
+        </section>
+        <div className="progress-section-heading"><div><span className="eyebrow">YOUR TRAINING RHYTHM</span><h3>Workouts per week</h3></div><span>Last 8 weeks · target 4</span></div>
+        <section className="progress-week-chart" aria-label="Completed workouts per week">
+          {progressWeeklyActivity.map(item => <div className="progress-week-column" key={item.label}>
+            <div className="progress-week-bar-wrap"><span className="progress-week-target" /><i style={{ height: Math.max(4, Math.min(100, item.count / 4 * 100)) + "%" }} /><b>{item.count || ""}</b></div>
+            <small>{item.label}</small>
+          </div>)}
+        </section>
+        <p className="progress-footnote">Only completed workouts in this training plan are counted. Each bar is one calendar week; the target line represents four workouts.</p>
+      </>}
+      {progressTab === "strength" && <>
+        <div className="progress-section-heading"><div><span className="eyebrow">STRENGTH TRACKER</span><h3>Recent lift progress</h3></div><span>Latest vs. previous</span></div>
+        <section className="progress-exercise-list">
+          {progressExerciseRows.map(item => <article className="progress-exercise-card" key={item.name}>
+            <div className="progress-exercise-copy"><strong>{item.name}</strong><small>{item.count} logged {item.count === 1 ? "session" : "sessions"} · {item.latest.date ? new Date(item.latest.date).toLocaleDateString([], {month:"short",day:"numeric"}) : "Date unavailable"}</small></div>
+            <div className="progress-exercise-value"><strong>{item.latest.value} <small>lb</small></strong>{item.previous ? <span className={item.change > 0 ? "is-up" : item.change < 0 ? "is-down" : ""}>{item.change > 0 ? "+" : ""}{item.change} lb</span> : <span>First entry</span>}</div>
+          </article>)}
+          {!progressExerciseRows.length && <div className="progress-empty-state"><strong>Your strength trends will show up here.</strong><p>Log weights during a few workouts and we will compare your latest entries with the previous ones.</p></div>}
+        </section>
+        <p className="progress-footnote">Comparisons use the latest recorded working weight for each exercise. They are a snapshot, not a measure of total training volume.</p>
+      </>}
+      {progressTab === "consistency" && <>
+        <div className="progress-section-heading"><div><span className="eyebrow">SHOWING UP</span><h3>Last 28 days</h3></div><span>{sessionsLast28Days} workouts</span></div>
+        <section className="progress-calendar" aria-label="Workout activity calendar">
+          {progressCalendarDays.map(day => <div className={day.active ? "progress-calendar-day active" : "progress-calendar-day"} key={day.key} title={day.label + (day.active ? " · Workout completed" : " · No workout logged")}><span>{day.day}</span></div>)}
+        </section>
+        <div className="progress-calendar-legend"><span><i/> No workout</span><span><i className="active"/> Workout completed</span></div>
+        <p className="progress-footnote">This calendar reflects completed sessions in Our Gym Plan only. It is not intended to represent your overall activity or recovery.</p>
+      </>}
+75847    </> : screen === "history" ? <>
       <button className="back-button" onClick={() => setScreen("home")}>← Back to workouts</button>
       <section className="greeting"><div><div className="eyebrow">YOUR TRAINING LOG</div><h2>Workout history</h2><p>{payload.sessions?.length || 0} completed workouts</p></div></section>
       <section className="history-list">
