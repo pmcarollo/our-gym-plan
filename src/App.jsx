@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Check, ChevronDown, ChevronUp, Clock3, Dumbbell, ExternalLink, Library, Lock, LogOut, RefreshCw, RotateCcw, Settings, Timer, Trophy } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, ChevronUp, Clock3, Dumbbell, ExternalLink, Library, Lock, LogOut, RefreshCw, RotateCcw, Settings, Trophy } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "";
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
@@ -322,7 +322,6 @@ export default function App() {
   const [startedAt, setStartedAt] = useState(null);
   const [workoutDate, setWorkoutDate] = useState(todayKey());
   const [workoutTime, setWorkoutTime] = useState(currentTimeKey());
-  const [rest, setRest] = useState(0);
   const [expandedBonus, setExpandedBonus] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
   const [completionModal, setCompletionModal] = useState(false);
@@ -409,12 +408,6 @@ export default function App() {
       return { key, day: date.toLocaleDateString([], { weekday: "narrow" }), label: date.toLocaleDateString([], { month: "short", day: "numeric" }), active: activeDates.has(key) };
     });
   }, [payload.sessions]);
-
-  useEffect(() => {
-    if (!rest) return;
-    const id = setInterval(() => setRest(v => Math.max(0, v - 1)), 1000);
-    return () => clearInterval(id);
-  }, [rest > 0]);
 
   useEffect(() => {
     if (!token || !person) return;
@@ -590,7 +583,6 @@ export default function App() {
     setStartedAt(null);
     setWorkoutId("");
     setWildCardWorkout(null);
-    setRest(0);
     setExpandedBonus(false);
     setNotice("");
     setScreen("home");
@@ -708,7 +700,6 @@ export default function App() {
     setStartedAt(null);
     setWildCardWorkout(null);
     setCompletionModal(false);
-    setRest(0);
     setScreen("home");
     setNotice("");
   }
@@ -1136,8 +1127,6 @@ export default function App() {
 
         </section>;
       })()}
-      {activeWorkoutStep < 5 && <button type="button" className="rest-quick-action" onClick={() => setRest(60)}><Timer size={16}/> Rest 60 sec</button>}
-      {rest > 0 && <div className="rest-overlay"><div><div className="eyebrow">REST TIMER</div><strong>{Math.floor(rest/60)}:{String(rest%60).padStart(2,"0")}</strong><button onClick={() => setRest(0)}>Skip rest</button></div></div>}
       <button className="primary-button complete-button" onClick={() => { setWorkoutDate(todayKey()); setWorkoutTime(currentTimeKey()); setCompletionModal(true); }}> <Check size={18}/> Complete workout</button>
     </>}
     {trackerModal && <div className="modal-backdrop tracker-modal-backdrop" role="presentation" onClick={() => setTrackerModal(false)}>
