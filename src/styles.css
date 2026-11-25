@@ -2762,3 +2762,50 @@ body:has(.workout-screen-shell) {
   white-space: nowrap;
 }
 .workout-screen-shell .focused-superset-card .last-used-weight { display: inline !important; }
+
+
+/* Final workout row sizing: keep the editable weight field inside the card. */
+.workout-screen-shell .focused-superset-card .exercise-row {
+  grid-template-columns: minmax(0,1fr) minmax(96px,110px) !important;
+  column-gap: 8px !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.workout-screen-shell .focused-superset-card .exercise-name {
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+.workout-screen-shell .workout-weight-entry {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 110px !important;
+  justify-self: end !important;
+  box-sizing: border-box !important;
+}
+.workout-screen-shell .workout-weight-entry .weight-input {
+  display: flex !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 110px !important;
+  box-sizing: border-box !important;
+}
+.workout-screen-shell .workout-weight-entry .weight-input input {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+.workout-screen-shell .last-weight-suggestion {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  font-size: 9px !important;
+}
+.workout-screen-shell .complete-button {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  width: min(calc(100vw - 36px), 560px) !important;
+  margin: 0 !important;
+}
