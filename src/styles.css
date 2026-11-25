@@ -2734,3 +2734,7 @@ body:has(.workout-screen-shell) {
     padding-bottom: 12px !important;
   }
 }
+
+.workout-screen-shell .compact-set-panel:has(input:not([type="checkbox"])) {
+  grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+}
