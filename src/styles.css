@@ -2917,3 +2917,18 @@ body:has(.workout-screen-shell) {
 .workout-screen-shell .set-tracking-row input:not([type="checkbox"]) {
   font-size: 16px !important;
 }
+
+
+/* Dedicated final page for the optional bonus reveal. */
+.workout-screen-shell .bonus-reveal-page {
+  min-height: 170px !important;
+  justify-content: center !important;
+  margin: 18px 0 !important;
+  padding: 24px 20px !important;
+}
+.workout-screen-shell .bonus-reveal-page small {
+  color: #718574 !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  font-weight: 500 !important;
+}
