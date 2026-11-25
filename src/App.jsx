@@ -848,7 +848,7 @@ export default function App() {
     return <div className="exercise-row" key={name}>
       <div className="exercise-name"><strong>{name}</strong><small>{detail}</small><span className="exercise-set-progress">{completedSets} of {tracking.sets.length} sets</span></div>
       <div className="workout-weight-entry">
-        <label className="weight-input"><input aria-label={name + " workout weight " + exerciseMetric(name)} inputMode="decimal" placeholder={suggestedWeight !== "" ? String(suggestedWeight) : "Weight"} value={currentWorkoutWeights[name] ?? ""} onChange={e => updateWeight(name,e.target.value)}/><span>{exerciseMetric(name)}</span></label>
+        <label className="weight-input"><input aria-label={name + " workout weight " + exerciseMetric(name)} inputMode="decimal" placeholder="" value={currentWorkoutWeights[name] ?? ""} onChange={e => updateWeight(name,e.target.value)}/><span>{exerciseMetric(name)}</span></label>
         {suggestedWeight !== "" && <button type="button" className="last-weight-suggestion" onClick={() => updateWeight(name,String(suggestedWeight))}>Last time: {suggestedWeight} {exerciseMetric(name)} · Use</button>}
       </div>
       <div className="set-tracking-panel compact-set-panel">{tracking.sets.map((set,index) => <div className={"set-tracking-row " + (set.completed ? "set-is-complete" : "")} key={index}><label><input type="checkbox" checked={set.completed} onChange={e => updateLiveSet(name,index,{completed:e.target.checked})}/><span>Set {index+1}</span></label>{individualWeights && <><input aria-label={name + " set " + (index+1) + " " + exerciseMetric(name)} inputMode="decimal" placeholder="Weight" value={set.weight} onChange={e => updateLiveSet(name,index,{weight:e.target.value})}/><span>{exerciseMetric(name)}</span></>}</div>)}</div>
@@ -1084,7 +1084,7 @@ export default function App() {
           { type: "pair", pairIndex: order[1], displayIndex: 1 },
           { type: "core", coreIndex: coreOrder[1], displayIndex: 1 },
           { type: "pair", pairIndex: order[2], displayIndex: 2 },
-          ...(expandedBonus ? [{ type: "bonus", pairIndex: bonusPairIndex, displayIndex: 3 }] : [])
+          { type: expandedBonus ? "bonus" : "bonus-gate", pairIndex: bonusPairIndex, displayIndex: 3 }
         ];
         const stepIndex = Math.max(0, Math.min(steps.length - 1, activeWorkoutStep));
         const step = steps[stepIndex];
@@ -1097,7 +1097,7 @@ export default function App() {
         const core = step.type === "core" ? CORE_BREAKS[step.coreIndex] : null;
         const coreStatus = core ? payload.coreStatus?.[startedAt + "-" + core[0]] : null;
         const goToStep = next => setActiveWorkoutStep(Math.max(0, Math.min(steps.length - 1, next)));
-        const stepLabel = step.type === "core" ? "Optional core" : step.type === "bonus" ? "Feeling saucy?" : "Superset " + (step.displayIndex + 1);
+        const stepLabel = step.type === "core" ? "Optional core" : step.type === "bonus" || step.type === "bonus-gate" ? "Feeling saucy?" : "Superset " + (step.displayIndex + 1);
         return <section className="focused-workout" onTouchStart={event => { const touch = event.touches[0]; workoutTouchStart.current = { x: touch.clientX, y: touch.clientY }; }} onTouchEnd={event => {
           const startPoint = workoutTouchStart.current; workoutTouchStart.current = null;
           if (!startPoint || !event.changedTouches.length) return;
@@ -1116,7 +1116,7 @@ export default function App() {
               <header><div className="superset-heading-copy"><span className="eyebrow">{step.type === "bonus" ? "OPTIONAL BONUS SUPERSET" : "SUPERSET " + (step.displayIndex + 1)}</span><span className="pair-progress-label">{pairComplete ? "All sets complete" : pair.map(([name]) => currentWorkoutSets[name]?.sets?.filter(set => set.completed).length || 0).reduce((a,b) => a+b,0) + " sets completed"}</span></div><button className={"pair-check " + (pairComplete ? "checked" : "")} onClick={() => togglePair(step.pairIndex)}>{pairComplete ? <><Check size={17}/> Done</> : "Complete pair"}</button></header>
               {pair.map(([name,detail]) => renderLiveExercise(name,detail))}
             </article>}
-            {step.type === "pair" && step.displayIndex === 2 && !expandedBonus && <button type="button" className="bonus-reveal-button" onClick={() => { setExpandedBonus(true); setActiveWorkoutStep(5); }}><span>Feeling saucy?</span><strong>Reveal the optional bonus superset <span aria-hidden="true">→</span></strong></button>}
+            {step.type === "bonus-gate" && <button type="button" className="bonus-reveal-button bonus-reveal-page" onClick={() => setExpandedBonus(true)}><span>Feeling saucy?</span><strong>Reveal the optional bonus superset <span aria-hidden="true">→</span></strong><small>Extra credit, completely optional. Your required workout is already done.</small></button>}
             {step.type === "core" && <article className={"core-break focused-core-card " + (coreStatus === "done" ? "core-done" : "")}>
               <div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE · YOUR CHOICE</span><strong>{core[0]}</strong><small>{core[1]} · {core[2]}</small></div>
               <div className="core-actions"><button className={"core-action " + (coreStatus === "done" ? "selected" : "")} onClick={() => setCoreStatus(core[0], "done")}><Check size={13}/> Done</button><button className={"core-action " + (coreStatus === "skipped" ? "selected" : "")} onClick={() => setCoreStatus(core[0], "skipped")}>Skip</button></div>
