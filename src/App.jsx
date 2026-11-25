@@ -378,6 +378,36 @@ export default function App() {
     }).sort((a,b) => new Date(b.latest.date || 0) - new Date(a.latest.date || 0)).slice(0,8);
   }, [payload.sessions]);
   const sessionsLast28Days = useMemo(() => (payload.sessions || []).filter(session => session.completedAt && Date.now() - new Date(session.completedAt).getTime() <= 28 * 86400000).length, [payload.sessions]);
+  const progressWeeklyActivity = useMemo(() => {
+    const now = new Date();
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7) - 49);
+    return Array.from({ length: 8 }, (_, index) => {
+      const start = new Date(monday);
+      start.setDate(monday.getDate() + index * 7);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 7);
+      const count = (payload.sessions || []).filter(session => {
+        const date = session.completedAt ? new Date(session.completedAt) : null;
+        return date && date >= start && date < end;
+      }).length;
+      return { label: start.toLocaleDateString([], { month: "short", day: "numeric" }), count };
+    });
+  }, [payload.sessions]);
+  const progressCalendarDays = useMemo(() => {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 27);
+    const activeDates = new Set((payload.sessions || []).filter(session => session.completedAt).map(session => {
+      const date = new Date(session.completedAt);
+      return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
+    }));
+    return Array.from({ length: 28 }, (_, index) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + index);
+      const key = [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
+      return { key, day: date.toLocaleDateString([], { weekday: "narrow" }), label: date.toLocaleDateString([], { month: "short", day: "numeric" }), active: activeDates.has(key) };
+    });
+  }, [payload.sessions]);
 
   useEffect(() => {
     if (!rest) return;
