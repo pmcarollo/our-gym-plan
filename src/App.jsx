@@ -81,7 +81,7 @@ function stravaWorkoutText(session) {
     }
     return `${prescription} ${item.name}${weight}`.trim();
   };
-  (session.exerciseSnapshot || []).flat().filter(item => item.completed).forEach(item => {
+  (session.exerciseSnapshot || []).flat().filter(item => item.completed || (Array.isArray(item.sets) && item.sets.some(set => set.completed))).forEach(item => {
     const sets = Array.isArray(item.sets) ? item.sets.filter(set => set.completed) : [];
     if (!sets.length) { lines.push(formatExercise(item)); return; }
     const reps = (item.detail.match(/(\d+)\s+sets?\s*[·x]\s*(\d+)/i) || [])[2] || "";
@@ -1131,7 +1131,7 @@ export default function App() {
         </section>;
       })()}
       {rest > 0 && <div className="rest-overlay"><div><div className="eyebrow">REST TIMER</div><strong>{Math.floor(rest/60)}:{String(rest%60).padStart(2,"0")}</strong><button onClick={() => setRest(0)}>Skip rest</button></div></div>}
-      <button className="primary-button complete-button" onClick={() => setCompletionModal(true)}> <Check size={18}/> Complete workout</button>
+      <button className="primary-button complete-button" onClick={() => { setWorkoutDate(todayKey()); setWorkoutTime(currentTimeKey()); setCompletionModal(true); }}> <Check size={18}/> Complete workout</button>
     </>}
     {trackerModal && <div className="modal-backdrop tracker-modal-backdrop" role="presentation" onClick={() => setTrackerModal(false)}>
       <section className="confirm-modal tracker-modal" role="dialog" aria-modal="true" aria-labelledby="tracker-modal-title" onClick={e => e.stopPropagation()}>
