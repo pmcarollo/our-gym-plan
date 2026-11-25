@@ -924,7 +924,7 @@ export default function App() {
   </section></main>;
 
   return <main className={`app-shell ${screen === "workout" && activeWorkout ? "workout-screen-shell" : ""} ${["settings","library","progress","history","completed-workout"].includes(screen) ? "scroll-screen-shell" : ""}`}>
-    <header className="topbar"><Brand /><div className="header-actions"><button className="icon-button refresh-app-button" aria-label="Refresh app and check for updates" title="Refresh app and check for updates" onClick={forceRefreshApp}><RefreshCw size={15}/></button><button className="icon-button settings-top-button" aria-label="Settings" title="Settings" onClick={() => setScreen("settings")}><Settings size={18}/></button></div></header>
+    {screen !== "workout" && <header className="topbar"><Brand /><div className="header-actions"><button className="icon-button refresh-app-button" aria-label="Refresh app and check for updates" title="Refresh app and check for updates" onClick={forceRefreshApp}><RefreshCw size={15}/></button><button className="icon-button settings-top-button" aria-label="Settings" title="Settings" onClick={() => setScreen("settings")}><Settings size={18}/></button></div></header>}
     {screen === "home" ? <>
       <section className="home-welcome">
         <div className="home-greeting-copy"><div className="eyebrow">LET'S GET AFTER IT</div><h2>{timeGreeting}, {person}.</h2><p>Week {week} · {easternTime} Eastern</p></div>
