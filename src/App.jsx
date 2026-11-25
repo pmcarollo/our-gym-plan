@@ -990,7 +990,7 @@ export default function App() {
         <div className="progress-calendar-legend"><span><i/> No workout</span><span><i className="active"/> Workout completed</span></div>
         <p className="progress-footnote">This calendar reflects completed sessions in Our Gym Plan only. It is not intended to represent your overall activity or recovery.</p>
       </>}
-75847    </> : screen === "history" ? <>
+    </> : screen === "history" ? <>
       <button className="back-button" onClick={() => setScreen("home")}>← Back to workouts</button>
       <section className="greeting"><div><div className="eyebrow">YOUR TRAINING LOG</div><h2>Workout history</h2><p>{payload.sessions?.length || 0} completed workouts</p></div></section>
       <section className="history-list">
