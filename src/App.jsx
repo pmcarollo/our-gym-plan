@@ -48,7 +48,8 @@ const CORE_BREAKS = [
   ["Bicycle crunch", "10–12 each side", "Rotate through your ribs and move slowly without pulling your neck."],
   ["Heel taps", "12–15 each side", "Keep shoulders slightly raised and reach side to side."],
   ["Bear plank shoulder tap", "8–10 each side", "Hover knees just off the floor and resist rocking your hips."],
-  ["Glute bridge march", "8–10 each side", "Keep hips level as you slowly lift one foot at a time."]
+  ["Glute bridge march", "8–10 each side", "Keep hips level as you slowly lift one foot at a time."],
+  ["Weighted Russian twist", "10–12 each side", "Hold a dumbbell at your chest and rotate slowly through your upper torso."]
 ];
 
 
@@ -151,7 +152,7 @@ function generateWildCard(week, disabledExercises = []) {
     [legs[1],finisher[1]]
   ];
   const comboKey = pairs.flat().map(item => item[0]).sort().join("|");
-  const coreOrder = seededShuffle(CORE_BREAKS.map((_, i) => i).filter(i => !disabledExercises.includes(CORE_BREAKS[i][0])), seed + "-core").slice(0,2);
+  const coreOrder = seededShuffle(CORE_BREAKS.map((_, i) => i).filter(i => !disabledExercises.includes(CORE_BREAKS[i][0])), seed + "-core").slice(0,4);
   return {id:"E",name:"Wild Card",focus:"Push · Pull · Legs · Finisher",pairs,comboKey,coreOrder};
 }
 
@@ -213,7 +214,8 @@ const EXERCISE_GUIDES = {
   "Pallof press": ["An anti-rotation core exercise using a cable or band.", ["Stand sideways to the anchor and hold handle at your chest.", "Brace and press hands straight out without rotating.", "Pause, then bring hands back under control."], "Avoid twisting toward the cable or leaning away."],
   "Front plank": ["A static core hold that trains the trunk to stay rigid.", ["Place elbows under shoulders and extend legs.", "Squeeze glutes and brace abs while breathing normally.", "Keep ears, shoulders, hips and ankles aligned."], "Avoid sagging hips or raising them too high."],
   "Farmer carry": ["A loaded walk that trains grip, core and posture.", ["Hold weights at your sides with shoulders relaxed.", "Stand tall, brace gently and walk with controlled steps.", "Keep the weights steady and turn carefully."], "Avoid leaning to one side or shrugging."],
-  "Cable wood chop": ["A diagonal cable movement that trains trunk control.", ["Stand sideways to the cable with feet planted.", "Move the handle diagonally across your body with control.", "Let your upper body rotate naturally while hips stay stable."], "Avoid yanking with your arms or twisting through your lower back."]
+  "Cable wood chop": ["A diagonal cable movement that trains trunk control.", ["Stand sideways to the cable with feet planted.", "Move the handle diagonally across your body with control.", "Let your upper body rotate naturally while hips stay stable."], "Avoid yanking with your arms or twisting through your lower back."],
+  "Weighted Russian twist": ["A weighted rotational core exercise that trains the obliques and trunk control.", ["Sit with knees bent, heels on the floor, and lean back slightly while keeping your spine long.", "Hold a light dumbbell close to your chest and rotate your rib cage to one side.", "Return through center and rotate to the other side with control; count each side separately."], "Avoid swinging the weight, rounding your lower back, or forcing the rotation. Keep the movement controlled and use a load you can manage."]
 };
 
 const EXERCISE_METRICS = {
@@ -221,7 +223,7 @@ const EXERCISE_METRICS = {
   "Dead bug": "reps", "Pallof press": "reps", "Cable wood chop": "reps",
   "Reverse crunch": "reps", "Bird dog": "reps", "Mountain climber": "reps",
   "Bicycle crunch": "reps", "Heel taps": "reps", "Bear plank shoulder tap": "reps",
-  "Glute bridge march": "reps",
+  "Glute bridge march": "reps", "Weighted Russian twist": "reps",
   "Front plank": "sec", "Side plank": "sec", "Rower sprint": "sec",
   "Bike sprint": "sec", "Incline treadmill walk": "sec", "Elliptical intervals": "sec"
 };
@@ -246,7 +248,7 @@ const EXERCISE_MUSCLES = {
   "Reverse crunch":["Core"],"Bird dog":["Core"],"Side plank":["Core","Obliques"],
   "Mountain climber":["Core","Conditioning"],"Bicycle crunch":["Core","Obliques"],
   "Heel taps":["Core","Obliques"],"Bear plank shoulder tap":["Core","Shoulders"],
-  "Glute bridge march":["Glutes","Core"],"DB floor press":["Chest","Triceps"],
+  "Glute bridge march":["Glutes","Core"],"Weighted Russian twist":["Core","Obliques"],"DB floor press":["Chest","Triceps"],
   "Cable chest fly":["Chest"],"Close-grip push-up":["Triceps","Chest"],
   "Smith machine bench press":["Chest","Triceps"],"Seated cable row":["Back","Biceps"],
   "Straight-arm pulldown":["Back"],"Reverse-grip lat pulldown":["Back","Biceps"],
@@ -596,9 +598,9 @@ export default function App() {
   function startWorkout(id) {
     const coreOrderKey = "w" + week + "-" + id;
     const availableCore = availableCoreIndices();
-    if (availableCore.length < 2) { setError("Keep at least two optional core exercises enabled."); return; }
+    if (availableCore.length < 4) { setError("Keep at least four optional core exercises enabled."); return; }
     const existingCoreOrder = sharedProgram.coreOrder?.[coreOrderKey];
-    if (!existingCoreOrder || existingCoreOrder.slice(0,2).some(i => !availableCore.includes(i))) {
+    if (!existingCoreOrder || existingCoreOrder.slice(0,4).length < 4 || new Set(existingCoreOrder.slice(0,4)).size < 4 || existingCoreOrder.slice(0,4).some(i => !availableCore.includes(i))) {
       const coreOrder = { ...(sharedProgram.coreOrder || {}), [coreOrderKey]: seededShuffle(availableCore, "shared-core-" + week + "-" + id) };
       saveSharedProgram({ coreOrder });
     }
@@ -687,9 +689,9 @@ export default function App() {
       startedAt: startedAt || completedAt, completedAt, workoutDate,
       bonusPerformed: activeWorkout.pairs[(sharedProgram.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3]].every((_, exerciseIndex) => Boolean(payload.done?.[exerciseKey(workoutId, (sharedProgram.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], exerciseIndex)])),
       bonusDone: activeWorkout.pairs[(sharedProgram.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3]].every((_, exerciseIndex) => Boolean(payload.done?.[exerciseKey(workoutId, (sharedProgram.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3])[3], exerciseIndex)])),
-      coreSnapshot: (sharedProgram.coreOrder?.['w' + week + '-' + workoutId] || [0,1,2,3,4,5,6,7]).slice(0,2).map((coreIndex, displayIndex) => {
+      coreSnapshot: (sharedProgram.coreOrder?.['w' + week + '-' + workoutId] || [0,1,2,3,4,5,6,7]).slice(0,4).map((coreIndex, index) => {
         const [name, prescription] = CORE_BREAKS[coreIndex];
-        return { afterSuperset: displayIndex + 1, name, prescription, status: payload.coreStatus?.[`${startedAt}-${name}`] || "not recorded" };
+        return { afterSuperset: Math.floor(index / 2) + 1, option: index % 2 + 1, name, prescription, status: payload.coreStatus?.[startedAt + "-" + name] || "not recorded" };
       }),
       exerciseSnapshot: activeWorkout.pairs.map((pair, pairIndex) => pair.map(([name, detail], exerciseIndex) => ({ name, detail, weight: currentWorkoutWeights[name] || "", sets: currentWorkoutSets[name]?.enabled ? currentWorkoutSets[name].sets : null, completed: currentWorkoutSets[name]?.enabled ? currentWorkoutSets[name].sets.every(set => set.completed) : Boolean(payload.done?.[exerciseKey(workoutId, pairIndex, exerciseIndex)]) })))
     }];
@@ -883,8 +885,8 @@ export default function App() {
       const remaining = wildCardCategory[1].filter(([exercise]) => !nextDisabled.includes(exercise));
       if (remaining.length < 2) { setLibraryMessage("Keep at least two enabled exercises in each Wild Card category."); return; }
     }
-    if (!isDisabled && CORE_BREAKS.some(([exercise]) => exercise === name) && CORE_BREAKS.filter(([exercise]) => !nextDisabled.includes(exercise)).length < 2) {
-      setLibraryMessage("Keep at least two optional core exercises enabled."); return;
+    if (!isDisabled && CORE_BREAKS.some(([exercise]) => exercise === name) && CORE_BREAKS.filter(([exercise]) => !nextDisabled.includes(exercise)).length < 4) {
+      setLibraryMessage("Keep at least four optional core exercises enabled so both core steps have two choices."); return;
     }
     setLibraryMessage("");
     saveSharedProgram({ disabledExercises: nextDisabled });
@@ -1077,12 +1079,12 @@ export default function App() {
       <div className="workout-controls"><span className="muted-label workout-requirement">3 required supersets · 1 optional bonus</span><div className="workout-datetime"><div className="datetime-field"><span className="datetime-label">Workout date</span><input aria-label="Workout date" type="date" value={workoutDate} max={todayKey()} onChange={e => setWorkoutDate(e.target.value)} /></div><div className="datetime-field"><span className="datetime-label">Finish time</span><strong className="live-finish-time">{easternTime} Eastern</strong></div></div><span className="muted-label workout-started">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
       {(() => {
         const order = (sharedProgram.supersetOrder?.["w" + week + "-" + workoutId] || [0,1,2,3]).slice(0,3);
-        const coreOrder = (sharedProgram.coreOrder?.["w" + week + "-" + workoutId] || [0,1,2,3,4,5,6,7]).slice(0,2);
+        const coreOrder = (sharedProgram.coreOrder?.["w" + week + "-" + workoutId] || [0,1,2,3,4,5,6,7]).slice(0,4);
         const steps = [
           { type: "pair", pairIndex: order[0], displayIndex: 0 },
-          { type: "core", coreIndex: coreOrder[0], displayIndex: 0 },
+          { type: "core", coreIndices: coreOrder.slice(0,2), displayIndex: 0 },
           { type: "pair", pairIndex: order[1], displayIndex: 1 },
-          { type: "core", coreIndex: coreOrder[1], displayIndex: 1 },
+          { type: "core", coreIndices: coreOrder.slice(2,4), displayIndex: 1 },
           { type: "pair", pairIndex: order[2], displayIndex: 2 },
           { type: expandedBonus ? "bonus" : "bonus-gate", pairIndex: bonusPairIndex, displayIndex: 3 }
         ];
@@ -1094,8 +1096,7 @@ export default function App() {
           const tracking = currentWorkoutSets[name];
           return tracking?.enabled ? tracking.sets.length > 0 && tracking.sets.every(set => set.completed) : Boolean(payload.done?.[exerciseKey(workoutId, step.pairIndex, ei)]);
         });
-        const core = step.type === "core" ? CORE_BREAKS[step.coreIndex] : null;
-        const coreStatus = core ? payload.coreStatus?.[startedAt + "-" + core[0]] : null;
+        const coreOptions = step.type === "core" ? step.coreIndices.map(coreIndex => CORE_BREAKS[coreIndex]) : [];
         const goToStep = next => setActiveWorkoutStep(Math.max(0, Math.min(steps.length - 1, next)));
         const stepLabel = step.type === "core" ? "Optional core" : step.type === "bonus" || step.type === "bonus-gate" ? "Feeling saucy?" : "Superset " + (step.displayIndex + 1);
         return <section className="focused-workout" onTouchStart={event => {
@@ -1126,11 +1127,17 @@ export default function App() {
               {pair.map(([name,detail]) => renderLiveExercise(name,detail))}
             </article>}
             {step.type === "bonus-gate" && <button type="button" className="bonus-reveal-button bonus-reveal-page" onClick={() => setExpandedBonus(true)}><span className="bonus-sparkle" aria-hidden="true">✦ ✨ ✦</span><span>Feeling saucy?</span><strong>Unlock your bonus round <span aria-hidden="true">→</span></strong><small>Extra credit, completely optional. Your required workout is already done.</small></button>}
-            {step.type === "core" && <article className={"core-break focused-core-card " + (coreStatus === "done" ? "core-done" : "")}>
-              <div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE · YOUR CHOICE</span><strong>{core[0]}</strong><small>{core[1]} · {core[2]}</small></div>
-              <div className="core-actions"><button className={"core-action " + (coreStatus === "done" ? "selected" : "")} onClick={() => setCoreStatus(core[0], "done")}><Check size={13}/> Done</button><button className={"core-action " + (coreStatus === "skipped" ? "selected" : "")} onClick={() => setCoreStatus(core[0], "skipped")}>Skip</button></div>
-              <ExerciseGuide name={core[0]}/>
-              <span className="core-page-status">{coreStatus === "done" ? "Core completed" : coreStatus === "skipped" ? "Skipped · no impact on workout completion" : "Optional · skip whenever you like"}</span>
+            {step.type === "core" && <article className="focused-core-options">
+              <div className="core-choice-intro"><span className="eyebrow">OPTIONAL CORE · PICK ONE</span><strong>Choose your core move</strong><small>Two options for this break. Do either one, or skip both.</small></div>
+              {coreOptions.map((core, optionIndex) => {
+                const coreStatus = payload.coreStatus?.[startedAt + "-" + core[0]] || null;
+                return <section className={"core-break focused-core-card " + (coreStatus === "done" ? "core-done" : "")} key={core[0]}>
+                  <div className="core-break-copy"><span className="eyebrow">OPTION {optionIndex + 1}</span><strong>{core[0]}</strong><small>{core[1]}</small><p>{core[2]}</p></div>
+                  <ExerciseGuide name={core[0]}/>
+                  <div className="core-actions"><button className={"core-action " + (coreStatus === "done" ? "selected" : "")} onClick={() => setCoreStatus(core[0], "done")}><Check size={16}/> {coreStatus === "done" ? "Completed" : "Mark done"}</button><button className={"core-action " + (coreStatus === "skipped" ? "selected" : "")} onClick={() => setCoreStatus(core[0], "skipped")}>{coreStatus === "skipped" ? "Skipped" : "Skip"}</button></div>
+                </section>;
+              })}
+              <span className="core-page-status">Optional · your workout progress is unaffected if you skip core</span>
             </article>}
           </div>
 
