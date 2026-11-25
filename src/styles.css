@@ -2659,3 +2659,78 @@ body:has(.workout-screen-shell) {
   justify-content: center !important;
   white-space: normal !important;
 }
+
+
+/* Workout refinements: compact default set rows with optional per-set weights. */
+.workout-screen-shell .compact-set-panel {
+  display: grid !important;
+  grid-template-columns: repeat(4,minmax(0,1fr)) !important;
+  gap: 5px !important;
+  padding: 7px 8px !important;
+}
+.workout-screen-shell .compact-set-panel .set-tracking-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  min-width: 0 !important;
+  gap: 5px !important;
+  padding: 3px 0 !important;
+}
+.workout-screen-shell .compact-set-panel .set-tracking-row label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  white-space: nowrap !important;
+}
+.workout-screen-shell .compact-set-panel .set-tracking-row input:not([type="checkbox"]) {
+  width: 58px !important;
+  min-width: 0 !important;
+}
+.workout-screen-shell .individual-weight-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 30px !important;
+  margin: 3px 0 5px !important;
+  padding: 5px 9px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 9px !important;
+  background: #f7f8f2 !important;
+  color: #557b62 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+}
+.workout-screen-shell .compact-set-panel:not(:has(input:not([type="checkbox"]))) .set-tracking-row {
+  justify-content: flex-start !important;
+}
+.workout-screen-shell {
+  padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
+}
+.workout-screen-shell .complete-button {
+  position: fixed !important;
+  display: flex !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: 0 !important;
+  transform: translateX(-50%) !important;
+  width: min(calc(100% - 36px), 560px) !important;
+  max-width: 560px !important;
+  min-width: 0 !important;
+  min-height: 58px !important;
+  margin: 0 !important;
+  padding: 12px 18px calc(12px + env(safe-area-inset-bottom)) !important;
+  border-radius: 15px 15px 0 0 !important;
+  box-sizing: border-box !important;
+  justify-content: center !important;
+  text-align: center !important;
+  white-space: normal !important;
+  z-index: 60 !important;
+}
+@media (min-width: 600px) {
+  .workout-screen-shell .complete-button {
+    bottom: 12px !important;
+    width: min(calc(100% - 48px), 560px) !important;
+    border-radius: 14px !important;
+    padding-bottom: 12px !important;
+  }
+}
