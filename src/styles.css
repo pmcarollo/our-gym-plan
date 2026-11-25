@@ -2584,3 +2584,78 @@ html:has(.workout-screen-shell), body:has(.workout-screen-shell) {
   .completion-modal .completion-datetime { gap: 7px; }
   .completion-modal .completion-datetime input { padding: 6px 4px; font-size: 11px; }
 }
+
+
+/* Workout layout repair: preserve the focused pages, but let the page grow and scroll.
+   A superset must never be clipped to the remaining viewport height. */
+html:has(.workout-screen-shell),
+body:has(.workout-screen-shell) {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: auto !important;
+}
+.app-shell.workout-screen-shell {
+  display: block !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding-bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+  overscroll-behavior: auto !important;
+}
+.workout-screen-shell .focused-workout {
+  display: block !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  touch-action: pan-y !important;
+}
+.workout-screen-shell .focused-workout-page {
+  display: block !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+.workout-screen-shell .focused-superset-card,
+.workout-screen-shell .focused-core-card {
+  display: block !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+.workout-screen-shell .focused-superset-card .exercise-row {
+  overflow: visible !important;
+}
+.workout-screen-shell .focused-superset-card .exercise-guide {
+  display: block !important;
+  margin-top: 5px !important;
+}
+.workout-screen-shell .focused-superset-card .rest-button {
+  margin-top: 10px !important;
+}
+.workout-screen-shell .focused-workout-footer {
+  margin: 10px 1px 8px !important;
+}
+.workout-screen-shell .complete-button {
+  position: sticky !important;
+  display: flex !important;
+  box-sizing: border-box !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 54px !important;
+  margin: 12px 0 0 !important;
+  padding: 14px 18px !important;
+  z-index: 45 !important;
+  justify-content: center !important;
+  white-space: normal !important;
+}
