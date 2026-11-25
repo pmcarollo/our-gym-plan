@@ -1093,7 +1093,7 @@ export default function App() {
           { type: "pair", pairIndex: order[1], displayIndex: 1 },
           { type: "core", coreIndex: coreOrder[1], displayIndex: 1 },
           { type: "pair", pairIndex: order[2], displayIndex: 2 },
-          { type: "bonus", pairIndex: bonusPairIndex, displayIndex: 3 }
+          ...(expandedBonus ? [{ type: "bonus", pairIndex: bonusPairIndex, displayIndex: 3 }] : [])
         ];
         const stepIndex = Math.max(0, Math.min(steps.length - 1, activeWorkoutStep));
         const step = steps[stepIndex];
@@ -1106,7 +1106,7 @@ export default function App() {
         const core = step.type === "core" ? CORE_BREAKS[step.coreIndex] : null;
         const coreStatus = core ? payload.coreStatus?.[startedAt + "-" + core[0]] : null;
         const goToStep = next => setActiveWorkoutStep(Math.max(0, Math.min(steps.length - 1, next)));
-        const stepLabel = step.type === "core" ? "Optional core" : step.type === "bonus" ? "Bonus superset" : "Superset " + (step.displayIndex + 1);
+        const stepLabel = step.type === "core" ? "Optional core" : step.type === "bonus" ? "Feeling saucy?" : "Superset " + (step.displayIndex + 1);
         return <section className="focused-workout" onTouchStart={event => { const touch = event.touches[0]; workoutTouchStart.current = { x: touch.clientX, y: touch.clientY }; }} onTouchEnd={event => {
           const startPoint = workoutTouchStart.current; workoutTouchStart.current = null;
           if (!startPoint || !event.changedTouches.length) return;
@@ -1124,8 +1124,8 @@ export default function App() {
             {isPair && <article className={"superset-card focused-superset-card " + (pairComplete ? "pair-complete" : "")}>
               <header><div className="superset-heading-copy"><span className="eyebrow">{step.type === "bonus" ? "OPTIONAL BONUS SUPERSET" : "SUPERSET " + (step.displayIndex + 1)}</span><span className="pair-progress-label">{pairComplete ? "All sets complete" : pair.map(([name]) => currentWorkoutSets[name]?.sets?.filter(set => set.completed).length || 0).reduce((a,b) => a+b,0) + " sets completed"}</span></div><button className={"pair-check " + (pairComplete ? "checked" : "")} onClick={() => togglePair(step.pairIndex)}>{pairComplete ? <><Check size={17}/> Done</> : "Complete pair"}</button></header>
               {pair.map(([name,detail]) => renderLiveExercise(name,detail))}
-              <button className="rest-button" onClick={() => setRest(60)}><Timer size={14}/> Rest 60 sec</button>
             </article>}
+            {step.type === "pair" && step.displayIndex === 2 && !expandedBonus && <button type="button" className="bonus-reveal-button" onClick={() => { setExpandedBonus(true); setActiveWorkoutStep(5); }}><span>Feeling saucy?</span><strong>Reveal the optional bonus superset <span aria-hidden="true">→</span></strong></button>}
             {step.type === "core" && <article className={"core-break focused-core-card " + (coreStatus === "done" ? "core-done" : "")}>
               <div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE · YOUR CHOICE</span><strong>{core[0]}</strong><small>{core[1]} · {core[2]}</small></div>
               <div className="core-actions"><button className={"core-action " + (coreStatus === "done" ? "selected" : "")} onClick={() => setCoreStatus(core[0], "done")}><Check size={13}/> Done</button><button className={"core-action " + (coreStatus === "skipped" ? "selected" : "")} onClick={() => setCoreStatus(core[0], "skipped")}>Skip</button></div>
@@ -1136,6 +1136,7 @@ export default function App() {
 
         </section>;
       })()}
+      {activeWorkoutStep < 5 && <button type="button" className="rest-quick-action" onClick={() => setRest(60)}><Timer size={16}/> Rest 60 sec</button>}
       {rest > 0 && <div className="rest-overlay"><div><div className="eyebrow">REST TIMER</div><strong>{Math.floor(rest/60)}:{String(rest%60).padStart(2,"0")}</strong><button onClick={() => setRest(0)}>Skip rest</button></div></div>}
       <button className="primary-button complete-button" onClick={() => { setWorkoutDate(todayKey()); setWorkoutTime(currentTimeKey()); setCompletionModal(true); }}> <Check size={18}/> Complete workout</button>
     </>}
