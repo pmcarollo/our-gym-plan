@@ -2932,3 +2932,80 @@ body:has(.workout-screen-shell) {
   line-height: 1.4 !important;
   font-weight: 500 !important;
 }
+
+
+/* Completion modal: keep native date/time controls in separate, non-overlapping cells. */
+.completion-modal .completion-datetime {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+.completion-modal .completion-datetime label {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+.completion-modal .completion-datetime input {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  padding: 8px 6px !important;
+  font-size: 16px !important;
+  text-align: center !important;
+}
+@media (max-width: 430px) {
+  .completion-modal .completion-datetime { grid-template-columns: minmax(0,1fr) !important; gap: 12px !important; }
+}
+/* Bonus page: playful reveal, with accessible reduced-motion fallback. */
+.workout-screen-shell .bonus-reveal-page {
+  position: relative !important;
+  overflow: hidden !important;
+  min-height: 205px !important;
+  background: linear-gradient(135deg, #e8f1e2, #f9f6e7 60%, #e2ede1) !important;
+  border: 2px dashed #9ab99a !important;
+  box-shadow: 0 8px 24px rgba(35,76,60,.10) !important;
+  transition: transform .2s ease, box-shadow .2s ease !important;
+}
+.workout-screen-shell .bonus-reveal-page:active { transform: scale(.985) !important; }
+.workout-screen-shell .bonus-reveal-page strong { font-size: 21px !important; line-height: 1.2 !important; }
+.workout-screen-shell .bonus-reveal-page .bonus-sparkle {
+  font-size: 27px !important;
+  line-height: 1.2 !important;
+  letter-spacing: .2em !important;
+  color: #a78335 !important;
+  animation: bonusTwinkle 2.3s ease-in-out infinite;
+}
+.workout-screen-shell .bonus-unlocked-card {
+  animation: bonusPopIn .65s cubic-bezier(.2,.85,.25,1.2) both;
+  border: 2px solid #a5bf9a !important;
+  box-shadow: 0 10px 28px rgba(35,76,60,.14) !important;
+}
+.workout-screen-shell .bonus-unlocked-card::before {
+  content: "✦ BONUS ROUND UNLOCKED ✦";
+  display: block;
+  padding: 10px 8px 2px;
+  color: #6c874d;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  animation: bonusTwinkle 1.2s ease-in-out 2;
+}
+@keyframes bonusPopIn {
+  0% { opacity: 0; transform: translateY(20px) scale(.95); }
+  65% { opacity: 1; transform: translateY(-4px) scale(1.015); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes bonusTwinkle {
+  0%,100% { opacity: .65; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.07); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workout-screen-shell .bonus-reveal-page .bonus-sparkle,
+  .workout-screen-shell .bonus-unlocked-card,
+  .workout-screen-shell .bonus-unlocked-card::before { animation: none !important; }
+}
