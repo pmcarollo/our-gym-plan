@@ -857,7 +857,7 @@ export default function App() {
     return <div className="exercise-row" key={name}>
       <div className="exercise-name"><strong>{name}</strong><small>{detail}</small><span className="exercise-set-progress">{completedSets} of {tracking.sets.length} sets</span></div>
       <div className="workout-weight-entry">
-        <label className="weight-input"><input aria-label={name + " workout weight " + exerciseMetric(name)} inputMode="decimal" placeholder="Weight" value={currentWorkoutWeights[name] ?? suggestedWeight ?? ""} onChange={e => updateWeight(name,e.target.value)}/><span>{exerciseMetric(name)}</span></label>
+        <label className="weight-input"><input aria-label={name + " workout weight " + exerciseMetric(name)} inputMode="decimal" placeholder={suggestedWeight !== "" ? String(suggestedWeight) : "Weight"} value={currentWorkoutWeights[name] ?? ""} onChange={e => updateWeight(name,e.target.value)}/><span>{exerciseMetric(name)}</span></label>
         {suggestedWeight !== "" && <button type="button" className="last-weight-suggestion" onClick={() => updateWeight(name,String(suggestedWeight))}>Last time: {suggestedWeight} {exerciseMetric(name)} · Use</button>}
       </div>
       <div className="set-tracking-panel compact-set-panel">{tracking.sets.map((set,index) => <div className={"set-tracking-row " + (set.completed ? "set-is-complete" : "")} key={index}><label><input type="checkbox" checked={set.completed} onChange={e => updateLiveSet(name,index,{completed:e.target.checked})}/><span>Set {index+1}</span></label>{individualWeights && <><input aria-label={name + " set " + (index+1) + " " + exerciseMetric(name)} inputMode="decimal" placeholder="Weight" value={set.weight} onChange={e => updateLiveSet(name,index,{weight:e.target.value})}/><span>{exerciseMetric(name)}</span></>}</div>)}</div>
@@ -1133,7 +1133,7 @@ export default function App() {
               <span className="core-page-status">{coreStatus === "done" ? "Core completed" : coreStatus === "skipped" ? "Skipped · no impact on workout completion" : "Optional · skip whenever you like"}</span>
             </article>}
           </div>
-          <div className="focused-workout-footer"><span>{step.type === "core" ? (coreStatus === "done" ? "Core completed" : coreStatus === "skipped" ? "Core skipped" : "Optional core") : pairComplete ? "Superset complete" : step.type === "bonus" ? "Bonus work is optional" : "Log sets as you go"}</span><button onClick={() => goToStep(stepIndex + 1)} disabled={stepIndex === steps.length - 1}>{stepIndex === steps.length - 1 ? "Last page" : "Next page →"}</button></div>
+
         </section>;
       })()}
       {rest > 0 && <div className="rest-overlay"><div><div className="eyebrow">REST TIMER</div><strong>{Math.floor(rest/60)}:{String(rest%60).padStart(2,"0")}</strong><button onClick={() => setRest(0)}>Skip rest</button></div></div>}
