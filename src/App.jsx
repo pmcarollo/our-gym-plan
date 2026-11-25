@@ -1048,7 +1048,7 @@ export default function App() {
           if (!startPoint || !event.changedTouches.length) return;
           const touch = event.changedTouches[0];
           const dx = touch.clientX - startPoint.x, dy = touch.clientY - startPoint.y;
-          if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.25) goToStep(displayIndex + (dx < 0 ? 1 : -1));
+          if (!event.target.closest("input,button,textarea,select,[contenteditable=true]") && Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.25) goToStep(displayIndex + (dx < 0 ? 1 : -1));
         }}>
           <div className="focused-workout-nav">
             <button onClick={() => goToStep(displayIndex - 1)} disabled={displayIndex === 0}>← Previous</button>
