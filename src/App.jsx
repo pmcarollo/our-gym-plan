@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, Check, ChevronDown, ChevronUp, Clock3, Dumbbell, ExternalLink, Library, Lock, LogOut, RefreshCw, RotateCcw, Settings, Timer, Trophy } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "";
@@ -333,6 +333,9 @@ export default function App() {
   const [currentWorkoutSets, setCurrentWorkoutSets] = useState({});
   const [trackerModal, setTrackerModal] = useState(false);
   const [trackerNameDraft, setTrackerNameDraft] = useState("");
+  const [progressTab, setProgressTab] = useState("overview");
+  const [activeWorkoutStep, setActiveWorkoutStep] = useState(0);
+  const workoutTouchStart = useRef(null);
 
   const viewedSession = (payload.sessions || []).find(session => session.id === viewSessionId) || null;
 
@@ -396,6 +399,7 @@ export default function App() {
       const draft = JSON.parse(raw);
       if (!draft?.workoutId || !draft?.startedAt) return;
       setWorkoutId(draft.workoutId);
+      setActiveWorkoutStep(Math.max(0, Math.min(2, Number(draft.activeWorkoutStep) || 0)));
       setWildCardWorkout(draft.workoutSnapshot || null);
       setStartedAt(draft.startedAt);
       setWorkoutDate(draft.workoutDate || todayKey());
@@ -411,9 +415,9 @@ export default function App() {
   useEffect(() => {
     if (!person) return;
     if (startedAt && workoutId) {
-      localStorage.setItem(draftKey(person), JSON.stringify({ workoutId, startedAt, workoutDate, workoutTime, workoutSnapshot: wildCardWorkout, currentWorkoutWeights, currentWorkoutSets }));
+      localStorage.setItem(draftKey(person), JSON.stringify({ workoutId, startedAt, workoutDate, workoutTime, workoutSnapshot: wildCardWorkout, currentWorkoutWeights, currentWorkoutSets, activeWorkoutStep }));
     }
-  }, [person, workoutId, startedAt, workoutDate, workoutTime, wildCardWorkout, currentWorkoutWeights, currentWorkoutSets]);
+  }, [person, workoutId, startedAt, workoutDate, workoutTime, wildCardWorkout, currentWorkoutWeights, currentWorkoutSets, activeWorkoutStep]);
 
   async function loadProfile() {
     try {
@@ -563,6 +567,7 @@ export default function App() {
     save({ ...payload, done });
     setWildCardWorkout(null);
     setWorkoutId(id);
+    setActiveWorkoutStep(0);
     setWorkoutDate(todayKey());
     setWorkoutTime(currentTimeKey());
     setCurrentWorkoutWeights({});
@@ -587,6 +592,7 @@ export default function App() {
     save({ ...payload, done });
     setWildCardWorkout(generated);
     setWorkoutId("E");
+    setActiveWorkoutStep(0);
     setWorkoutDate(todayKey());
     setWorkoutTime(currentTimeKey());
     setCurrentWorkoutWeights({});
@@ -974,28 +980,44 @@ export default function App() {
         <div className="live-progress-bottom"><span>{Math.round(totalRequiredExercises ? completedRequiredExercises / totalRequiredExercises * 100 : 0)}% required work</span><span>Bonus: {completedBonusExercises}/2</span></div>
       </section>
       <div className="workout-controls"><span className="muted-label workout-requirement">3 required supersets · 1 optional bonus</span><div className="workout-datetime"><div className="datetime-field"><span className="datetime-label">Workout date</span><input aria-label="Workout date" type="date" value={workoutDate} max={todayKey()} onChange={e => setWorkoutDate(e.target.value)} /></div><div className="datetime-field"><span className="datetime-label">Finish time</span><strong className="live-finish-time">{easternTime} Eastern</strong></div></div><span className="muted-label workout-started">Started {new Date(startedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></div>
-      <section className="superset-list">{(sharedProgram.supersetOrder?.['w' + week + '-' + workoutId] || [0,1,2,3]).slice(0,3).map((pairIndex,displayIndex) => {
+      {(() => {
+        const order = (sharedProgram.supersetOrder?.["w" + week + "-" + workoutId] || [0,1,2,3]).slice(0,3);
+        const displayIndex = Math.max(0, Math.min(order.length - 1, activeWorkoutStep));
+        const pairIndex = order[displayIndex];
         const pair = activeWorkout.pairs[pairIndex];
-        const index = pairIndex;
-        const complete = pair.every((_, ei) => payload.done?.[exerciseKey(workoutId,index,ei)]);
-        const coreIndex = (sharedProgram.coreOrder?.['w' + week + '-' + workoutId] || [0,1,2,3,4,5,6,7])[displayIndex];
+        const complete = pair.every((_, ei) => payload.done?.[exerciseKey(workoutId,pairIndex,ei)]);
+        const coreIndex = (sharedProgram.coreOrder?.["w" + week + "-" + workoutId] || [0,1,2,3,4,5,6,7])[displayIndex];
         const core = CORE_BREAKS[coreIndex];
-        return <div className="superset-and-core" key={index}>
-        <article className={`superset-card ${complete ? "pair-complete" : ""}`}>
-          <header><div className="superset-heading-copy"><span className="eyebrow">SUPERSET {displayIndex+1}</span><span className="pair-progress-label">{complete ? "Pair complete" : "Pair not complete"}</span></div><button className={`pair-check ${complete ? "checked" : ""}`} onClick={() => togglePair(index)}>{complete ? <><Check size={17}/> Done</> : "Complete pair"}</button></header>
-          {pair.map(([name,detail]) => renderLiveExercise(name,detail))}
-          <button className="rest-button" onClick={() => setRest(60)}><Timer size={14}/> Rest 60 sec</button>
-        </article>
-        {displayIndex < 2 && <div className={`core-break ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "done" ? "core-done" : ""}`}>
-          <div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE · BETWEEN SETS</span><strong>{core[0]}</strong><small>{core[1]} · {core[2]}</small></div>
-          <div className="core-actions">
-            <button className={`core-action ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "done" ? "selected" : ""}`} onClick={() => setCoreStatus(core[0], "done")}><Check size={13}/> Done</button>
-            <button className={`core-action ${payload.coreStatus?.[`${startedAt}-${core[0]}`] === "skipped" ? "selected" : ""}`} onClick={() => setCoreStatus(core[0], "skipped")}>Skip</button>
+        const canShowCore = displayIndex < 2;
+        const goToStep = next => setActiveWorkoutStep(Math.max(0, Math.min(order.length - 1, next)));
+        return <section className="focused-workout" onTouchStart={event => { const touch = event.touches[0]; workoutTouchStart.current = { x: touch.clientX, y: touch.clientY }; }} onTouchEnd={event => {
+          const startPoint = workoutTouchStart.current; workoutTouchStart.current = null;
+          if (!startPoint || !event.changedTouches.length) return;
+          const touch = event.changedTouches[0];
+          const dx = touch.clientX - startPoint.x, dy = touch.clientY - startPoint.y;
+          if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.25) goToStep(displayIndex + (dx < 0 ? 1 : -1));
+        }}>
+          <div className="focused-workout-nav">
+            <button onClick={() => goToStep(displayIndex - 1)} disabled={displayIndex === 0}>← Previous</button>
+            <div><span className="eyebrow">FOCUSED WORKOUT</span><strong>{displayIndex + 1} of {order.length}</strong></div>
+            <button onClick={() => goToStep(displayIndex + 1)} disabled={displayIndex === order.length - 1}>Next →</button>
           </div>
-          <ExerciseGuide name={core[0]}/>
-        </div>}
-        </div>;
-      })}</section>
+          <div className="focused-workout-dots">{order.map((_, index) => <button key={index} className={index === displayIndex ? "active" : index < displayIndex ? "visited" : ""} aria-label={"Go to superset " + (index + 1)} onClick={() => goToStep(index)} />)}</div>
+          <div className="superset-and-core" key={pairIndex}>
+            <article className={"superset-card " + (complete ? "pair-complete" : "")}>
+              <header><div className="superset-heading-copy"><span className="eyebrow">SUPERSET {displayIndex+1}</span><span className="pair-progress-label">{complete ? "Pair complete" : "Pair not complete"}</span></div><button className={"pair-check " + (complete ? "checked" : "")} onClick={() => togglePair(pairIndex)}>{complete ? <><Check size={17}/> Done</> : "Complete pair"}</button></header>
+              {pair.map(([name,detail]) => renderLiveExercise(name,detail))}
+              <button className="rest-button" onClick={() => setRest(60)}><Timer size={14}/> Rest 60 sec</button>
+            </article>
+            {canShowCore && <div className={"core-break " + (payload.coreStatus?.[startedAt + "-" + core[0]] === "done" ? "core-done" : "")}>
+              <div className="core-break-copy"><span className="eyebrow">OPTIONAL CORE · BETWEEN SETS</span><strong>{core[0]}</strong><small>{core[1]} · {core[2]}</small></div>
+              <div className="core-actions"><button className={"core-action " + (payload.coreStatus?.[startedAt + "-" + core[0]] === "done" ? "selected" : "")} onClick={() => setCoreStatus(core[0], "done")}><Check size={13}/> Done</button><button className={"core-action " + (payload.coreStatus?.[startedAt + "-" + core[0]] === "skipped" ? "selected" : "")} onClick={() => setCoreStatus(core[0], "skipped")}>Skip</button></div>
+              <ExerciseGuide name={core[0]}/>
+            </div>}
+          </div>
+          <div className="focused-workout-footer"><span>{complete ? "Pair completed" : "Finish this pair, then move on"}</span><button onClick={() => goToStep(displayIndex + 1)} disabled={displayIndex === order.length - 1}>{displayIndex === order.length - 1 ? "Last superset" : "Next superset →"}</button></div>
+        </section>;
+      })()}
       <section className={`bonus-card ${expandedBonus ? "bonus-open" : ""}`}>
         <button className="bonus-toggle" onClick={() => {setExpandedBonus(v => !v);}}><div><div className="eyebrow">OPTIONAL BONUS ROUND</div><strong>Superset 4 · Feeling saucy?</strong><small>Extra credit. Not required to finish.</small></div><span>{expandedBonus ? <ChevronUp/> : <ChevronDown/>}</span></button>
         {expandedBonus && (() => { const bonusIndex = bonusPairIndex; const bonusComplete = activeWorkout.pairs[bonusIndex].every((_,ei) => payload.done?.[exerciseKey(workoutId,bonusIndex,ei)]); return <div className="bonus-content">{activeWorkout.pairs[bonusIndex].map(([name,detail]) => renderLiveExercise(name,detail))}<button className={`pair-check bonus-done ${bonusComplete ? "checked" : ""}`} onClick={() => togglePair(bonusIndex)}>{bonusComplete ? "Bonus complete · Undo" : "Mark bonus complete"}</button></div>; })()}
